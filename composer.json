@@ -1,0 +1,31 @@
+{
+    "name": "carone/laravel-media",
+    "description": "Adds media functionality to laravel apps",
+    "type": "library",
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^12.35",
+        "intervention/image-laravel": "^1.5",
+        "lorisleiva/laravel-actions": "^2.9",
+        "illuminate/database": "^12.35",
+        "laravel/framework": "^12.35"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Carone\\Media\\CaroneMediaServiceProvider"
+            ]
+        }
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Carone\\Media\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Caron Emile"
+        }
+    ]
+}
