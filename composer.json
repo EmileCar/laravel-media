@@ -10,6 +10,12 @@
         "illuminate/database": "^12.35",
         "laravel/framework": "^12.35"
     },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "orchestra/testbench": "^10.0",
+        "mockery/mockery": "^1.6",
+        "illuminate/http": "^12.35"
+    },
     "extra": {
         "laravel": {
             "providers": [
@@ -22,6 +28,15 @@
         "psr-4": {
             "Carone\\Media\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Carone\\Media\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
     },
     "authors": [
         {

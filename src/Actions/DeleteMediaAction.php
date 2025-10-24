@@ -2,6 +2,7 @@
 
 namespace Carone\Media\Actions;
 
+use Carone\Media\Enums\MediaType;
 use Carone\Media\Models\MediaResource;
 use Carone\Media\Utilities\MediaUtilities;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -83,7 +84,7 @@ class DeleteMediaAction
      */
     public function deleteByType(string $type, array $filters = []): array
     {
-        if (!in_array($type, config('media.enabled_types', ['image', 'video', 'audio', 'document']))) {
+        if (!MediaType::isEnabled($type)) {
             throw new \InvalidArgumentException("Media type '{$type}' is not enabled");
         }
 
@@ -125,7 +126,7 @@ class DeleteMediaAction
      */
     public function cleanupOrphanedFiles(string $type): array
     {
-        if (!in_array($type, config('media.enabled_types', ['image', 'video', 'audio', 'document']))) {
+        if (!MediaType::isEnabled($type)) {
             throw new \InvalidArgumentException("Media type '{$type}' is not enabled");
         }
 

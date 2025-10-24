@@ -3,6 +3,7 @@
 namespace Carone\Media\Actions;
 
 use Carone\Media\Contracts\MediaUploadStrategyInterface;
+use Carone\Media\Enums\MediaType;
 use Carone\Media\Models\MediaResource;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
@@ -35,14 +36,20 @@ class StoreMediaAction
     {
         $this->validateData($data);
 
-        $type = $data['type'];
+        $typeString = $data['type'];
         $source = $data['source'] ?? 'local';
 
-        if (!in_array($type, config('media.enabled_types', ['image', 'video', 'audio', 'document']))) {
-            throw new \InvalidArgumentException("Media type '{$type}' is not enabled");
+        // Use the enum to validate and get the media type
+        $mediaType = MediaType::tryFrom($typeString);
+        if (!$mediaType) {
+            throw new \InvalidArgumentException("Invalid media type '{$typeString}'");
         }
 
-        $strategy = $this->getStrategy($type);
+        if (!MediaType::isEnabled($typeString)) {
+            throw new \InvalidArgumentException("Media type '{$typeString}' is not enabled");
+        }
+
+        $strategy = $this->getStrategy($typeString);
 
         if ($source === 'external') {
             if (empty($data['url'])) {
@@ -60,11 +67,11 @@ class StoreMediaAction
 
         // Validate file with strategy
         if (!$strategy->supports($file)) {
-            throw new \InvalidArgumentException("File type not supported for {$type} media");
+            throw new \InvalidArgumentException("File type not supported for {$typeString} media");
         }
 
-        // Additional validation based on config
-        $this->validateFile($file, $type);
+        // Additional validation based on enum and config
+        $this->validateFile($file, $mediaType);
 
         return $strategy->upload($file, $data);
     }
@@ -93,8 +100,12 @@ class StoreMediaAction
      */
     private function validateData(array $data): void
     {
+        $enabledTypes = array_map(function($type) {
+            return $type->value;
+        }, MediaType::getEnabled());
+        
         $rules = [
-            'type' => 'required|string|in:image,video,audio,document',
+            'type' => 'required|string|in:' . implode(',', $enabledTypes),
             'source' => 'string|in:local,external',
             'name' => 'string|max:255',
             'description' => 'string|max:1000',
@@ -110,13 +121,13 @@ class StoreMediaAction
     }
 
     /**
-     * Validate file based on configuration
+     * Validate file based on enum and configuration
      *
      * @param UploadedFile $file
-     * @param string $type
+     * @param MediaType $mediaType
      * @throws \InvalidArgumentException
      */
-    private function validateFile(UploadedFile $file, string $type): void
+    private function validateFile(UploadedFile $file, MediaType $mediaType): void
     {
         // Check banned file types
         $extension = strtolower($file->getClientOriginalExtension());
@@ -126,8 +137,20 @@ class StoreMediaAction
             throw new \InvalidArgumentException("File type '.{$extension}' is not allowed");
         }
 
-        // Apply type-specific validation rules
-        $validationRules = config("media.validation.{$type}", []);
+        // Check if file extension is supported by this media type
+        if (!in_array($extension, $mediaType->getSupportedExtensions())) {
+            $supportedTypes = implode(', ', $mediaType->getSupportedExtensions());
+            throw new \InvalidArgumentException("File extension '.{$extension}' is not supported for {$mediaType->getLabel()}. Supported types: {$supportedTypes}");
+        }
+
+        // Check MIME type
+        $mimeType = $file->getMimeType();
+        if (!in_array($mimeType, $mediaType->getSupportedMimeTypes())) {
+            throw new \InvalidArgumentException("MIME type '{$mimeType}' is not supported for {$mediaType->getLabel()}");
+        }
+
+        // Apply type-specific validation rules from config
+        $validationRules = $mediaType->getValidationRules();
         
         if (!empty($validationRules)) {
             $validator = Validator::make(['file' => $file], ['file' => $validationRules]);

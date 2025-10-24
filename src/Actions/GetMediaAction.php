@@ -3,6 +3,7 @@
 namespace Carone\Media\Actions;
 
 use Carone\Media\Contracts\MediaRetrievalStrategyInterface;
+use Carone\Media\Enums\MediaType;
 use Carone\Media\Models\MediaResource;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
@@ -48,7 +49,7 @@ class GetMediaAction
      */
     public function getByType(string $type, int $limit = 20, int $offset = 0): array
     {
-        if (!in_array($type, config('media.enabled_types', ['image', 'video', 'audio', 'document']))) {
+        if (!MediaType::isEnabled($type)) {
             throw new \InvalidArgumentException("Media type '{$type}' is not enabled");
         }
 
@@ -81,14 +82,7 @@ class GetMediaAction
      */
     public function getMediaTypes(): array
     {
-        $enabledTypes = config('media.enabled_types', ['image', 'video', 'audio', 'document']);
-        
-        return collect($enabledTypes)->map(function($type) {
-            return [
-                'value' => $type,
-                'label' => ucfirst($type)
-            ];
-        })->toArray();
+        return MediaType::getEnabledForApi();
     }
 
     /**
@@ -154,7 +148,7 @@ class GetMediaAction
         });
 
         if ($type) {
-            if (!in_array($type, config('media.enabled_types', ['image', 'video', 'audio', 'document']))) {
+            if (!MediaType::isEnabled($type)) {
                 throw new \InvalidArgumentException("Media type '{$type}' is not enabled");
             }
             $builder->where('type', $type);

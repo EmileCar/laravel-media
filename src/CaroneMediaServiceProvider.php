@@ -5,10 +5,7 @@ namespace Carone\Media;
 use Carone\Media\Actions\DeleteMediaAction;
 use Carone\Media\Actions\GetMediaAction;
 use Carone\Media\Actions\StoreMediaAction;
-use Carone\Media\Strategies\AudioStrategy;
-use Carone\Media\Strategies\DocumentStrategy;
-use Carone\Media\Strategies\ImageStrategy;
-use Carone\Media\Strategies\VideoStrategy;
+use Carone\Media\Enums\MediaType;
 use Illuminate\Support\ServiceProvider;
 
 class CaroneMediaServiceProvider extends ServiceProvider
@@ -35,10 +32,11 @@ class CaroneMediaServiceProvider extends ServiceProvider
             'media'
         );
 
-        $this->app->singleton(ImageStrategy::class);
-        $this->app->singleton(VideoStrategy::class);
-        $this->app->singleton(AudioStrategy::class);
-        $this->app->singleton(DocumentStrategy::class);
+        // Register strategy classes dynamically from MediaType enum
+        foreach (MediaType::cases() as $mediaType) {
+            $strategyClass = $mediaType->getStrategyClass();
+            $this->app->singleton($strategyClass);
+        }
 
         $this->app->singleton(StoreMediaAction::class);
         $this->app->singleton(GetMediaAction::class);
@@ -50,16 +48,7 @@ class CaroneMediaServiceProvider extends ServiceProvider
      */
     protected function registerStrategies(): void
     {
-        $strategies = [
-            'image' => $this->app->make(ImageStrategy::class),
-            'video' => $this->app->make(VideoStrategy::class),
-            'audio' => $this->app->make(AudioStrategy::class),
-            'document' => $this->app->make(DocumentStrategy::class),
-        ];
-
-        // Only register enabled strategies
-        $enabledTypes = config('media.enabled_types', ['image', 'video', 'audio', 'document']);
-        $enabledStrategies = array_intersect_key($strategies, array_flip($enabledTypes));
+        $enabledStrategies = MediaType::getEnabledStrategies();
 
         // Set strategies on Actions
         $this->app->make(StoreMediaAction::class)->setStrategies($enabledStrategies);
