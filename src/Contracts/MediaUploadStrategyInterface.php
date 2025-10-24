@@ -2,6 +2,7 @@
 
 namespace Carone\Media\Contracts;
 
+use Carone\Media\Enums\MediaType;
 use Illuminate\Http\UploadedFile;
 use Carone\Media\Models\MediaResource;
 
@@ -28,9 +29,9 @@ interface MediaUploadStrategyInterface
     /**
      * Get the media type this strategy handles
      *
-     * @return string
+     * @return \Carone\Media\Enums\MediaType
      */
-    public function getType(): string;
+    public function getType(): MediaType;
 
     /**
      * Validate if the file is supported by this strategy

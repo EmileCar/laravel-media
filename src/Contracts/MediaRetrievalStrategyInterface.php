@@ -2,6 +2,7 @@
 
 namespace Carone\Media\Contracts;
 
+use Carone\Media\Enums\MediaType;
 use Carone\Media\Models\MediaResource;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -26,9 +27,9 @@ interface MediaRetrievalStrategyInterface
     /**
      * Get the media type this strategy handles
      *
-     * @return string
+     * @return \Carone\Media\Enums\MediaType
      */
-    public function getType(): string;
+    public function getType(): MediaType;
 
     /**
      * Check if this strategy supports thumbnails

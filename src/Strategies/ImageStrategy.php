@@ -4,6 +4,7 @@ namespace Carone\Media\Strategies;
 
 use Carone\Media\Contracts\MediaUploadStrategyInterface;
 use Carone\Media\Contracts\MediaRetrievalStrategyInterface;
+use Carone\Media\Enums\MediaType;
 use Carone\Media\Models\MediaResource;
 use Carone\Media\Utilities\MediaUtilities;
 use Illuminate\Http\UploadedFile;
@@ -14,9 +15,9 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ImageStrategy implements MediaUploadStrategyInterface, MediaRetrievalStrategyInterface
 {
-    public function getType(): string
+    public function getType(): MediaType
     {
-        return 'image';
+        return MediaType::IMAGE;
     }
 
     public function supports(UploadedFile $file): bool

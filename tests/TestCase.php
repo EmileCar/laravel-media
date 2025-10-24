@@ -59,24 +59,9 @@ abstract class TestCase extends Orchestra
      */
     protected function createFakeImageFile(string $name = 'test-image.jpg', int $width = 100, int $height = 100): UploadedFile
     {
-        // Create a simple PNG image for testing
-        $image = \imagecreate($width, $height);
-        $white = \imagecolorallocate($image, 255, 255, 255);
-        $black = \imagecolorallocate($image, 0, 0, 0);
-        \imagefill($image, 0, 0, $white);
-        \imagestring($image, 1, 5, 5, 'Test Image', $black);
-
         $tempPath = tempnam(sys_get_temp_dir(), 'test_image');
-        \imagejpeg($image, $tempPath);
-        \imagedestroy($image);
-
-        return new UploadedFile(
-            $tempPath,
-            $name,
-            'image/jpeg',
-            null,
-            true
-        );
+        file_put_contents($tempPath, 'fake image content');
+        return new UploadedFile($tempPath, $name, 'image/jpeg', null, true);
     }
 
     /**

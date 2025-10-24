@@ -26,7 +26,7 @@ class DeleteMediaActionTest extends TestCase
         // Verify files exist before deletion
         $this->assertFileExistsInStorage('local', $media->path);
 
-        $result = $this->action->handle($media->id);
+        $result = $this->action->run($media->id);
 
         $this->assertTrue($result);
         $this->assertDatabaseMissing('media_resources', ['id' => $media->id]);

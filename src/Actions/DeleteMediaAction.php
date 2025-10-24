@@ -187,16 +187,4 @@ class DeleteMediaAction
             'errors' => $errors,
         ];
     }
-
-    /**
-     * Static method for easier usage
-     *
-     * @param int $id
-     * @return bool
-     */
-    public static function run(int $id): bool
-    {
-        $action = app(static::class);
-        return $action->handle($id);
-    }
 }

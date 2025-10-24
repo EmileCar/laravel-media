@@ -65,13 +65,13 @@ class StoreMediaAction
 
         $file = $data['file'];
 
+        // Additional validation based on enum and config (check banned types first)
+        $this->validateFile($file, $mediaType);
+
         // Validate file with strategy
         if (!$strategy->supports($file)) {
             throw new \InvalidArgumentException("File type not supported for {$typeString} media");
         }
-
-        // Additional validation based on enum and config
-        $this->validateFile($file, $mediaType);
 
         return $strategy->upload($file, $data);
     }
