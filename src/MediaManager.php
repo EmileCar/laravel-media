@@ -7,6 +7,7 @@ use Carone\Media\Contracts\GetMediaServiceInterface;
 use Carone\Media\Contracts\DeleteMediaServiceInterface;
 use Carone\Media\Enums\MediaType;
 use Carone\Media\Models\MediaResource;
+use Carone\Media\Utilities\MediaUtilities;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class MediaManager
@@ -102,6 +103,6 @@ class MediaManager
      */
     public function getEnabledTypes(): array
     {
-        return MediaType::getEnabledForApi();
+        return MediaUtilities::getEnabled();
     }
 }

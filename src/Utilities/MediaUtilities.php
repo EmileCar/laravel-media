@@ -3,87 +3,19 @@
 namespace Carone\Media\Utilities;
 
 use Carone\Media\ValueObjects\MediaType;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Intervention\Image\Laravel\Facades\Image;
-use Intervention\Image\Drivers\Gd\Encoders\JpegEncoder;
 
 class MediaUtilities
 {
-
     /**
-     * Create a thumbnail for an image
-     *
-     * @param mixed $imageFile The image file (UploadedFile or Image instance)
-     * @param string $type The media type
-     * @param string $filename The original filename
-     * @param string $disk The storage disk
-     * @param int $width Thumbnail width
-     * @param int $quality JPEG quality
-     * @return void
+     * Get all enabled media types from configuration
      */
-    public static function createThumbnail($imageFile, string $type, string $filename, string $disk = 'public', int $width = 200, int $quality = 60): void
+    public static function getEnabled(): array
     {
-        try {
-            $baseName = pathinfo($filename, PATHINFO_FILENAME);
-            $thumbnailPath = sprintf('media/%s/thumbnails/%s.jpg', $type, $baseName);
+        $enabledTypes = config('media.enabled_types', ['image', 'video', 'audio', 'document']);
 
-            // Ensure thumbnails directory exists
-            Storage::disk($disk)->makeDirectory(dirname($thumbnailPath));
-
-            $image = $imageFile instanceof \Intervention\Image\Image 
-                ? $imageFile 
-                : Image::read($imageFile);
-
-            $image->scaleDown(width: $width);
-            $jpegData = (string) $image->encode(new JpegEncoder($quality));
-
-            Storage::disk($disk)->put($thumbnailPath, $jpegData);
-        } catch (\Exception $e) {
-            logger()->error('Failed to create thumbnail: ' . $e->getMessage(), [
-                'type' => $type,
-                'filename' => $filename,
-                'error' => $e->getMessage()
-            ]);
-        }
-    }
-
-    /**
-     * Get thumbnail path for a media file
-     *
-     * @param string $type
-     * @param string $filename
-     * @return string
-     */
-    public static function getThumbnailPath(string $type, string $filename): string
-    {
-        $baseName = pathinfo($filename, PATHINFO_FILENAME);
-        return sprintf('media/%s/thumbnails/%s.jpg', $type, $baseName);
-    }
-
-    /**
-     * Delete media files and thumbnails
-     *
-     * @param string $type
-     * @param string $filename
-     * @param string $disk
-     * @return void
-     */
-    public static function deleteMediaFiles(string $type, string $filename, string $disk = 'public'): void
-    {
-        $storage = Storage::disk($disk);
-        
-        // Delete main file
-        $mainPath = self::getStoragePath($type) . '/' . $filename;
-        if ($storage->exists($mainPath)) {
-            $storage->delete($mainPath);
-        }
-
-        // Delete thumbnail
-        $thumbnailPath = self::getThumbnailPath($type, $filename);
-        if ($storage->exists($thumbnailPath)) {
-            $storage->delete($thumbnailPath);
-        }
+        return array_filter(MediaType::cases(), function($case) use ($enabledTypes) {
+            return in_array($case->value, $enabledTypes);
+        });
     }
 
     /**

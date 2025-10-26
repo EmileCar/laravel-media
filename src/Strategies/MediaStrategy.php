@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Strategies;
+namespace Carone\Media\Strategies;
 
 use Carone\Media\Models\MediaResource;
 use Carone\Media\Utilities\MediaStorageHelper;
+use Carone\Media\Utilities\MediaUtilities;
 use Carone\Media\ValueObjects\MediaFileReference;
 use Carone\Media\ValueObjects\MediaType;
 use Carone\Media\ValueObjects\StoreExternalMediaData;
@@ -13,9 +14,61 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 abstract class MediaStrategy
 {
     abstract public function getType(): MediaType;
-    abstract public function getMediaFile(MediaResource $media): BinaryFileResponse;
-    abstract public function storeLocalFile(StoreLocalMediaData $data): MediaResource;
-    abstract public function storeExternalFile(StoreExternalMediaData $data): MediaResource;
+
+    public function storeLocalFile(StoreLocalMediaData $data): MediaResource
+    {
+        $fileReference = $this->createUniqueFileReference($data);
+
+        MediaStorageHelper::storeFile($fileReference, file_get_contents($data->file->getRealPath()));
+
+        return MediaResource::create([
+            'type' => $this->getType()->value,
+            'source' => 'local',
+            'file_name' => $fileReference->filename,
+            'extension' => $fileReference->extension,
+            'disk' => $fileReference->disk,
+            'directory' => $fileReference->directory,
+            'display_name' => $data->name,
+            'description' => $data->description,
+            'date' => $data->date,
+            'meta' => [
+                'original_name' => $data->file->getClientOriginalName(),
+                'size' => $data->file->getSize(),
+                'mime_type' => $data->file->getMimeType(),
+            ],
+        ]);
+    }
+
+    public function storeExternalFile(StoreExternalMediaData $data): MediaResource
+    {
+        return MediaResource::create([
+            'type' => $this->getType()->value,
+            'source' => 'external',
+            'url' => $data->url,
+            'display_name' => $data->name,
+            'description' => $data->description,
+            'date' => $data->date,
+            'meta' => array_merge($data->meta ?? [], [
+                'host' => parse_url($data->url, PHP_URL_HOST),
+            ]),
+        ]);
+    }
+
+    public function getMediaFile(MediaResource $media): BinaryFileResponse
+    {
+        $fileReference = $media->loadFileReference();
+        if (!MediaStorageHelper::doesFileExist($fileReference->disk, $fileReference->getFullPath())) {
+            abort(404, 'Media file not found');
+        }
+
+        $path = MediaStorageHelper::getPhysicalPath($fileReference);
+        $mimeType = MediaUtilities::getMimeType($fileReference->extension, 'video/mp4');
+
+        return response()->file($path, [
+            'Content-Type' => $mimeType,
+            'Cache-Control' => 'public, max-age=31536000',
+        ]);
+    }
 
     /**
      * Create a unique file reference for the given local media data.

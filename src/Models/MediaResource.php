@@ -10,7 +10,7 @@ class MediaResource extends Model
     protected $table = 'media_resources';
 
     protected $fillable = [
-        'type', 'source', 'file_name', 'group', 'url',
+        'type', 'source', 'file_name', 'extension', 'disk', 'directory', 'group', 'url',
         'display_name', 'description', 'date', 'meta'
     ];
 
@@ -19,8 +19,12 @@ class MediaResource extends Model
         'date' => 'date',
     ];
 
-    public function loadFileReference(): MediaFileReference
+    public function loadFileReference(): ?MediaFileReference
     {
+        if ($this->source === 'external') {
+            return null;
+        }
+
         return new MediaFileReference(
             $this->file_name,
             $this->extension,

@@ -2,14 +2,13 @@
 
 namespace Carone\Media\Services;
 
-use App\Services\MediaService;
+use Carone\Media\Services\MediaService;
 use Carone\Common\Search\AppliesSearchCriteria;
 use Carone\Common\Search\SearchCriteria;
 use Carone\Common\Search\SearchFilter;
 use Carone\Media\Contracts\GetMediaServiceInterface;
-use Carone\Media\ValueObjects\MediaType;
+use Carone\Media\Utilities\MediaUtilities;
 use Carone\Media\Models\MediaResource;
-use Carone\Media\Traits\HasThumbnails;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -25,40 +24,17 @@ class GetMediaService extends MediaService implements GetMediaServiceInterface, 
 
     public function getMediaTypes(): array
     {
-        return MediaType::getEnabled();
+        return MediaUtilities::getEnabled();
     }
 
-    public function serveMedia(string $type, MediaF): BinaryFileResponse
+    public function serveMedia(string $path): BinaryFileResponse
     {
-        $media = MediaResource::where('type', $type)
-            ->where('source', 'local')
-            ->where('file_name', $identifier)
+        $media = MediaResource::where('source', 'local')
+            ->whereRaw("CONCAT(directory, '/', file_name, '.', extension) = ?", [$path])
             ->firstOrFail();
 
-        $strategy = $this->getStrategy($type);
+        $strategy = $this->getStrategy($media->type);
         return $strategy->getMediaFile($media);
-    }
-
-    public function serveThumbnail(string $type, string $identifier): BinaryFileResponse
-    {
-        $media = MediaResource::where('type', $type)
-            ->where('source', 'local')
-            ->where('file_name', $identifier)
-            ->firstOrFail();
-
-        $strategy = $this->getStrategy($type);
-
-        if (! in_array(HasThumbnails::class, class_uses_recursive($strategy))) {
-            abort(404, 'Thumbnails not supported for this media type');
-        }
-
-        $thumbnail = $strategy->getThumbnail($media);
-
-        if (!$thumbnail) {
-            abort(404, 'Thumbnail not found');
-        }
-
-        return $thumbnail;
     }
 
     public function search(SearchCriteria $criteria, ?int $offset, ?int $limit): LengthAwarePaginator

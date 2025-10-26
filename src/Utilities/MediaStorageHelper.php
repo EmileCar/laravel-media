@@ -19,6 +19,11 @@ class MediaStorageHelper
         Storage::disk($fileReference->disk)->put($fileReference->directory . DIRECTORY_SEPARATOR . $fileReference->getFileNameWithExtension(), $data);
     }
 
+    public static function deleteFile(MediaFileReference $fileReference): void
+    {
+        Storage::disk($fileReference->disk)->delete($fileReference->getFullPath());
+    }
+
     /**
      * Check if a file exists in the given disk and path
      *

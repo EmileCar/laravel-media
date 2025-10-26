@@ -2,7 +2,7 @@
 
 namespace Carone\Media\Services;
 
-use App\Services\MediaService;
+use Carone\Media\Services\MediaService;
 use Carone\Media\Contracts\StoreMediaServiceInterface;
 use Carone\Media\ValueObjects\MediaType;
 use Carone\Media\Models\MediaResource;

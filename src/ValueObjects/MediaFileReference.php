@@ -21,6 +21,12 @@ final readonly class MediaFileReference
 
     public function getFullPath(): string
     {
-        return trim("{$this->directory}/{$this->getFileNameWithExtension()}", '/');
+        $dir = trim($this->directory, '/');
+
+        if ($dir === '') {
+            return $this->getFileNameWithExtension();
+        }
+
+        return $dir . '/' . $this->getFileNameWithExtension();
     }
 }

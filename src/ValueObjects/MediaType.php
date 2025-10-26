@@ -45,7 +45,7 @@ enum MediaType: string
      */
     public function getValidationRules(): array
     {
-        return config("media.validation.{$this->value}", []);
+        return config("media.validation.{$this->value}", []) ?? [];
     }
 
     /**
@@ -58,18 +58,6 @@ enum MediaType: string
             self::VIDEO, self::AUDIO, self::DOCUMENT => false,
             default => false,
         };
-    }
-
-    /**
-     * Get all enabled media types from configuration
-     */
-    public static function getEnabled(): array
-    {
-        $enabledTypes = config('media.enabled_types', ['image', 'video', 'audio', 'document']);
-
-        return array_filter(self::cases(), function($case) use ($enabledTypes) {
-            return in_array($case->value, $enabledTypes);
-        });
     }
 
     /**
@@ -110,19 +98,6 @@ enum MediaType: string
             self::VIDEO => ['mp4', 'mov', 'avi'],
             self::AUDIO => ['mp3', 'wav'],
             self::DOCUMENT => ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
-        };
-    }
-
-    /**
-     * Get the maximum file size for this media type (in KB)
-     */
-    public function getMaxFileSize(): int
-    {
-        return match($this) {
-            self::IMAGE => 5120,    // 5MB
-            self::VIDEO => 20480,   // 20MB
-            self::AUDIO => 10240,   // 10MB
-            self::DOCUMENT => 10240, // 10MB
         };
     }
 }

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace Carone\Media\Services;
 
-use App\Strategies\MediaStrategy;
+use Carone\Media\Strategies\MediaStrategy;
 use Carone\Media\ValueObjects\MediaType;
 
 abstract class MediaService

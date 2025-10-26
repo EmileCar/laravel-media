@@ -8,7 +8,7 @@ use Carone\Media\Services\StoreMediaService;
 use Carone\Media\Contracts\StoreMediaServiceInterface;
 use Carone\Media\Contracts\GetMediaServiceInterface;
 use Carone\Media\Contracts\DeleteMediaServiceInterface;
-use Carone\Media\Enums\MediaType;
+use Carone\Media\ValueObjects\MediaType;
 use Carone\Media\MediaManager;
 use Illuminate\Support\ServiceProvider;
 
