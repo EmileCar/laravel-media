@@ -16,11 +16,11 @@ return [
     |--------------------------------------------------------------------------
     | Directory Structure
     |--------------------------------------------------------------------------
-    | Where uploaded media should be placed on the disk.
-    | Tokens like {type} will be replaced dynamically.
-    |---------------------------------------------------------------------------
+    | Configure where uploaded media should be placed on the disk.
+    | Replace {path} with the appropriate path segment.
+    |--------------------------------------------------------------------------
     */
-    'storage_path' => 'media/{type}',
+    'storage_path' => 'media/{path}',
 
     /*
     |--------------------------------------------------------------------------

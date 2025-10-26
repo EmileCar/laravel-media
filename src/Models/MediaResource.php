@@ -2,20 +2,30 @@
 
 namespace Carone\Media\Models;
 
+use Carone\Media\ValueObjects\MediaFileReference;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 
 class MediaResource extends Model
 {
     protected $table = 'media_resources';
 
     protected $fillable = [
-        'type', 'source', 'file_name', 'path', 'url',
-        'name', 'description', 'date', 'meta'
+        'type', 'source', 'file_name', 'group', 'url',
+        'display_name', 'description', 'date', 'meta'
     ];
 
     protected $casts = [
         'meta' => 'array',
         'date' => 'date',
     ];
+
+    public function loadFileReference(): MediaFileReference
+    {
+        return new MediaFileReference(
+            $this->file_name,
+            $this->extension,
+            $this->disk,
+            $this->directory
+        );
+    }
 }

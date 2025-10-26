@@ -57,7 +57,7 @@ class ImageStrategyTest extends TestCase
         $this->assertStringEndsWith('.jpg', $media->file_name);
 
         // Verify file was stored
-        $this->assertFileExistsInStorage('local', $media->path);
+        $this->assertFileExistsInStorage('local', $media->directory);
     }
 
     /** @test */

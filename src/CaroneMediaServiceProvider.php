@@ -2,10 +2,14 @@
 
 namespace Carone\Media;
 
-use Carone\Media\Actions\DeleteMediaAction;
-use Carone\Media\Actions\GetMediaAction;
-use Carone\Media\Actions\StoreMediaAction;
+use Carone\Media\Services\DeleteMediaService;
+use Carone\Media\Services\GetMediaService;
+use Carone\Media\Services\StoreMediaService;
+use Carone\Media\Contracts\StoreMediaServiceInterface;
+use Carone\Media\Contracts\GetMediaServiceInterface;
+use Carone\Media\Contracts\DeleteMediaServiceInterface;
 use Carone\Media\Enums\MediaType;
+use Carone\Media\MediaManager;
 use Illuminate\Support\ServiceProvider;
 
 class CaroneMediaServiceProvider extends ServiceProvider
@@ -19,10 +23,6 @@ class CaroneMediaServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/../config/media.php' => config_path('media.php'),
         ], 'config');
-
-        $this->app->booted(function () {
-            $this->registerStrategies();
-        });
     }
 
     public function register(): void
@@ -32,26 +32,15 @@ class CaroneMediaServiceProvider extends ServiceProvider
             'media'
         );
 
-        // Register strategy classes dynamically from MediaType enum
+        // Register strategy classes as singletons, but don't instantiate them yet
         foreach (MediaType::cases() as $mediaType) {
-            $strategyClass = $mediaType->getStrategyClass();
-            $this->app->singleton($strategyClass);
+            $this->app->singleton($mediaType->getStrategyClass());
         }
 
-        $this->app->singleton(StoreMediaAction::class);
-        $this->app->singleton(GetMediaAction::class);
-        $this->app->singleton(DeleteMediaAction::class);
-    }
-
-    /**
-     * Register strategies with the Actions
-     */
-    protected function registerStrategies(): void
-    {
-        $enabledStrategies = MediaType::getEnabledStrategies();
-
-        // Set strategies on Actions
-        $this->app->make(StoreMediaAction::class)->setStrategies($enabledStrategies);
-        $this->app->make(GetMediaAction::class)->setStrategies($enabledStrategies);
+        // Register services without pre-resolved strategies
+        $this->app->singleton(StoreMediaServiceInterface::class, StoreMediaService::class);
+        $this->app->singleton(GetMediaServiceInterface::class, GetMediaService::class);
+        $this->app->singleton(DeleteMediaServiceInterface::class, DeleteMediaService::class);
+        $this->app->singleton('carone.media', MediaManager::class);
     }
 }

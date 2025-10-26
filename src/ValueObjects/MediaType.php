@@ -1,13 +1,11 @@
 <?php
 
-namespace Carone\Media\Enums;
+namespace Carone\Media\ValueObjects;
 
 use Carone\Media\Strategies\AudioStrategy;
 use Carone\Media\Strategies\DocumentStrategy;
 use Carone\Media\Strategies\ImageStrategy;
 use Carone\Media\Strategies\VideoStrategy;
-use Carone\Media\Contracts\MediaUploadStrategyInterface;
-use Carone\Media\Contracts\MediaRetrievalStrategyInterface;
 
 enum MediaType: string
 {
@@ -30,14 +28,6 @@ enum MediaType: string
     }
 
     /**
-     * Get a strategy instance for this media type
-     */
-    public function getStrategy(): MediaUploadStrategyInterface&MediaRetrievalStrategyInterface
-    {
-        return app($this->getStrategyClass());
-    }
-
-    /**
      * Get the human-readable label for this media type
      */
     public function getLabel(): string
@@ -48,15 +38,6 @@ enum MediaType: string
             self::AUDIO => 'Audio',
             self::DOCUMENT => 'Document',
         };
-    }
-
-    /**
-     * Get the storage path for this media type
-     */
-    public function getStoragePath(): string
-    {
-        $configPath = config('media.storage_path', 'media/{type}');
-        return str_replace('{type}', $this->value, $configPath);
     }
 
     /**
@@ -75,6 +56,7 @@ enum MediaType: string
         return match($this) {
             self::IMAGE => true,
             self::VIDEO, self::AUDIO, self::DOCUMENT => false,
+            default => false,
         };
     }
 
@@ -84,63 +66,19 @@ enum MediaType: string
     public static function getEnabled(): array
     {
         $enabledTypes = config('media.enabled_types', ['image', 'video', 'audio', 'document']);
-        
+
         return array_filter(self::cases(), function($case) use ($enabledTypes) {
             return in_array($case->value, $enabledTypes);
         });
     }
 
     /**
-     * Get all enabled media types as associative array [value => label]
-     */
-    public static function getEnabledOptions(): array
-    {
-        return array_reduce(self::getEnabled(), function($carry, $case) {
-            $carry[$case->value] = $case->getLabel();
-            return $carry;
-        }, []);
-    }
-
-    /**
-     * Get all enabled media types as array with value and label structure for API
-     */
-    public static function getEnabledForApi(): array
-    {
-        return array_map(function($case) {
-            return [
-                'value' => $case->value,
-                'label' => $case->getLabel()
-            ];
-        }, self::getEnabled());
-    }
-
-    /**
-     * Get all enabled strategies mapped by type
-     */
-    public static function getEnabledStrategies(): array
-    {
-        return array_reduce(self::getEnabled(), function($carry, $case) {
-            $carry[$case->value] = $case->getStrategy();
-            return $carry;
-        }, []);
-    }
-
-    /**
      * Check if a given type is enabled
      */
-    public static function isEnabled(string $type): bool
+    public function isEnabled(): bool
     {
         $enabledTypes = config('media.enabled_types', ['image', 'video', 'audio', 'document']);
-        return in_array($type, $enabledTypes);
-    }
-
-    /**
-     * Get the default media type
-     */
-    public static function getDefault(): self
-    {
-        $enabled = self::getEnabled();
-        return !empty($enabled) ? $enabled[0] : self::IMAGE;
+        return in_array($this->value, $enabledTypes);
     }
 
     /**

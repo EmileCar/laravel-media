@@ -1,21 +1,22 @@
 <?php
 
-namespace Carone\Media\Tests\Actions;
+namespace Carone\Media\Tests\Services;
 
-use Carone\Media\Actions\DeleteMediaAction;
+use Carone\Media\Contracts\DeleteMediaServiceInterface;
+use Carone\Media\Services\DeleteMediaService;
 use Carone\Media\Models\MediaResource;
 use Carone\Media\Tests\TestCase;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Storage;
 
-class DeleteMediaActionTest extends TestCase
+class DeleteMediaServiceTest extends TestCase
 {
-    private DeleteMediaAction $action;
+    private DeleteMediaServiceInterface $action;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->action = app(DeleteMediaAction::class);
+        $this->action = app(DeleteMediaServiceInterface::class);
     }
 
     /** @test */
@@ -26,7 +27,7 @@ class DeleteMediaActionTest extends TestCase
         // Verify files exist before deletion
         $this->assertFileExistsInStorage('local', $media->path);
 
-        $result = $this->action->run($media->id);
+    $result = $this->action->delete($media->id);
 
         $this->assertTrue($result);
         $this->assertDatabaseMissing('media_resources', ['id' => $media->id]);
@@ -40,7 +41,7 @@ class DeleteMediaActionTest extends TestCase
     {
         $media = $this->createTestMedia('video', 'External Video', 'external', 'https://youtube.com/watch?v=test');
 
-        $result = $this->action->handle($media->id);
+        $result = $this->action->delete($media->id);
 
         $this->assertTrue($result);
         $this->assertDatabaseMissing('media_resources', ['id' => $media->id]);
@@ -51,7 +52,7 @@ class DeleteMediaActionTest extends TestCase
     {
         $this->expectException(ModelNotFoundException::class);
 
-        $this->action->handle(999);
+        $this->action->delete(999);
     }
 
     /** @test */
@@ -210,7 +211,7 @@ class DeleteMediaActionTest extends TestCase
         ]);
 
         // Should still delete the database record even if file doesn't exist
-        $result = $this->action->handle($media->id);
+        $result = $this->action->delete($media->id);
 
         $this->assertTrue($result);
         $this->assertDatabaseMissing('media_resources', ['id' => $media->id]);
@@ -221,7 +222,7 @@ class DeleteMediaActionTest extends TestCase
     {
         $media = $this->createTestMedia('image');
 
-        $result = DeleteMediaAction::run($media->id);
+    $result = DeleteMediaService::run($media->id);
 
         $this->assertTrue($result);
         $this->assertDatabaseMissing('media_resources', ['id' => $media->id]);
@@ -247,7 +248,7 @@ class DeleteMediaActionTest extends TestCase
 
         $this->assertFileExistsInStorage('local', $thumbnailPath);
 
-        $result = $this->action->handle($media->id);
+        $result = $this->action->delete($media->id);
 
         $this->assertTrue($result);
         $this->assertFileNotExistsInStorage('local', $thumbnailPath);

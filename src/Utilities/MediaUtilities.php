@@ -2,6 +2,7 @@
 
 namespace Carone\Media\Utilities;
 
+use Carone\Media\ValueObjects\MediaType;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Laravel\Facades\Image;
@@ -9,46 +10,6 @@ use Intervention\Image\Drivers\Gd\Encoders\JpegEncoder;
 
 class MediaUtilities
 {
-    /**
-     * Generate a unique filename in the given directory
-     *
-     * @param string $directory The disk-relative directory
-     * @param string $baseName The base name for the file
-     * @param string $extension The file extension
-     * @param string $disk The storage disk to use
-     * @return string
-     */
-    public static function generateUniqueFilename(string $directory, string $baseName, string $extension, string $disk = 'public'): string
-    {
-        $storage = Storage::disk($disk);
-        $baseName = self::sanitizeFilename($baseName) ?: (string) time();
-        $filename = $baseName . '.' . $extension;
-        $counter = 1;
-
-        while ($storage->exists($directory . '/' . $filename)) {
-            $filename = $baseName . '_' . $counter . '.' . $extension;
-            $counter++;
-        }
-
-        return $filename;
-    }
-
-    /**
-     * Sanitize a filename by creating a URL-friendly slug
-     *
-     * @param string $name
-     * @return string
-     */
-    public static function sanitizeFilename(string $name): string
-    {
-        $slug = Str::slug($name);
-        
-        if (empty($slug)) {
-            return uniqid('file_');
-        }
-
-        return $slug;
-    }
 
     /**
      * Create a thumbnail for an image
@@ -85,18 +46,6 @@ class MediaUtilities
                 'error' => $e->getMessage()
             ]);
         }
-    }
-
-    /**
-     * Get storage path for media type
-     *
-     * @param string $type
-     * @return string
-     */
-    public static function getStoragePath(string $type): string
-    {
-        $configPath = config('media.storage_path', 'media/{type}');
-        return str_replace('{type}', $type, $configPath);
     }
 
     /**
@@ -144,10 +93,8 @@ class MediaUtilities
      * @param string $defaultType
      * @return string
      */
-    public static function getMimeType(string $filename, string $defaultType = 'application/octet-stream'): string
+    public static function getMimeType(string $extension, string $defaultType = 'application/octet-stream'): string
     {
-        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        
         $mimeTypes = [
             'jpg' => 'image/jpeg',
             'jpeg' => 'image/jpeg',

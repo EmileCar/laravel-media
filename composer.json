@@ -6,9 +6,9 @@
         "php": "^8.2",
         "illuminate/support": "^12.35",
         "intervention/image-laravel": "^1.5",
-        "lorisleiva/laravel-actions": "^2.9",
         "illuminate/database": "^12.35",
-        "laravel/framework": "^12.35"
+        "laravel/framework": "^12.35",
+        "carone/laravel-common": "^1.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^11.0",

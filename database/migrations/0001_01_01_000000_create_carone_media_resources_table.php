@@ -10,11 +10,13 @@ return new class extends Migration {
         Schema::create('media_resources', function (Blueprint $table) {
             $table->id();
             $table->enum('type', ['image', 'video', 'audio', 'document']);
-            $table->enum('source', ['external', 'local'])->default('local');
+            $table->enum('source', ['local', 'external'])->default('local');
             $table->string('file_name')->nullable();
-            $table->string('path')->nullable();
+            $table->string('extension')->nullable();
+            $table->string('disk')->nullable();
+            $table->string('directory')->nullable();
             $table->string('url')->nullable();
-            $table->string('name');
+            $table->string('display_name')->nullable();
             $table->text('description')->nullable();
             $table->date('date')->nullable();
             $table->json('meta')->nullable();

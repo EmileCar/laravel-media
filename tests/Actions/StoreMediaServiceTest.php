@@ -1,19 +1,20 @@
 <?php
 
-namespace Carone\Media\Tests\Actions;
+namespace Carone\Media\Tests\Services;
 
-use Carone\Media\Actions\StoreMediaAction;
+use Carone\Media\Contracts\StoreMediaServiceInterface;
+use Carone\Media\Services\StoreMediaService;
 use Carone\Media\Models\MediaResource;
 use Carone\Media\Tests\TestCase;
 
-class StoreMediaActionTest extends TestCase
+class StoreMediaServiceTest extends TestCase
 {
-    private StoreMediaAction $action;
+    private StoreMediaServiceInterface $action;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->action = app(StoreMediaAction::class);
+    $this->action = app(StoreMediaServiceInterface::class);
     }
 
     /** @test */
@@ -326,7 +327,7 @@ class StoreMediaActionTest extends TestCase
             'name' => 'Static Test',
         ];
 
-        $media = StoreMediaAction::run($data);
+    $media = StoreMediaService::run($data);
 
         $this->assertInstanceOf(MediaResource::class, $media);
         $this->assertEquals('Static Test', $media->name);

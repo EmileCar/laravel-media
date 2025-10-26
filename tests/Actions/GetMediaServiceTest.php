@@ -1,20 +1,21 @@
 <?php
 
-namespace Carone\Media\Tests\Actions;
+namespace Carone\Media\Tests\Services;
 
-use Carone\Media\Actions\GetMediaAction;
+use Carone\Media\Contracts\GetMediaServiceInterface;
+use Carone\Media\Services\GetMediaService;
 use Carone\Media\Models\MediaResource;
 use Carone\Media\Tests\TestCase;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-class GetMediaActionTest extends TestCase
+class GetMediaServiceTest extends TestCase
 {
-    private GetMediaAction $action;
+    private GetMediaServiceInterface $action;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->action = app(GetMediaAction::class);
+    $this->action = app(GetMediaServiceInterface::class);
     }
 
     /** @test */
@@ -302,7 +303,7 @@ class GetMediaActionTest extends TestCase
     {
         $media = $this->createTestMedia('image');
 
-        $result = GetMediaAction::byId($media->id);
+    $result = GetMediaService::byId($media->id);
 
         $this->assertInstanceOf(MediaResource::class, $result);
         $this->assertEquals($media->id, $result->id);
@@ -313,7 +314,7 @@ class GetMediaActionTest extends TestCase
     {
         $this->createTestMedia('image', 'Test Image');
 
-        $result = GetMediaAction::byType('image', 10, 0);
+    $result = GetMediaService::byType('image', 10, 0);
 
         $this->assertIsArray($result);
         $this->assertEquals(1, $result['total']);

@@ -4,6 +4,7 @@ namespace Carone\Media\Strategies;
 
 use Carone\Media\Contracts\MediaUploadStrategyInterface;
 use Carone\Media\Contracts\MediaRetrievalStrategyInterface;
+use Carone\Media\Enums\MediaType;
 use Carone\Media\Models\MediaResource;
 use Carone\Media\Utilities\MediaUtilities;
 use Illuminate\Http\UploadedFile;
@@ -12,9 +13,9 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DocumentStrategy implements MediaUploadStrategyInterface, MediaRetrievalStrategyInterface
 {
-    public function getType(): string
+    public function getType(): MediaType
     {
-        return 'document';
+        return MediaType::DOCUMENT;
     }
 
     public function supports(UploadedFile $file): bool
@@ -40,7 +41,7 @@ class DocumentStrategy implements MediaUploadStrategyInterface, MediaRetrievalSt
 
     public function upload(UploadedFile $file, array $data): MediaResource
     {
-        $storagePath = MediaUtilities::getStoragePath($this->getType());
+        $storagePath = MediaUtilities::getStoragePath($this->getType()->value);
         $disk = config('media.disk', 'public');
         
         // Ensure directory exists
@@ -55,7 +56,7 @@ class DocumentStrategy implements MediaUploadStrategyInterface, MediaRetrievalSt
         $file->storeAs($storagePath, $filename, $disk);
 
         return MediaResource::create([
-            'type' => $this->getType(),
+            'type' => $this->getType()->value,
             'source' => 'local',
             'file_name' => $filename,
             'path' => $storagePath . '/' . $filename,
@@ -73,7 +74,7 @@ class DocumentStrategy implements MediaUploadStrategyInterface, MediaRetrievalSt
     public function uploadExternal(string $url, array $data): MediaResource
     {
         return MediaResource::create([
-            'type' => $this->getType(),
+            'type' => $this->getType()->value,
             'source' => 'external',
             'url' => $url,
             'name' => $data['name'] ?? 'External Document',

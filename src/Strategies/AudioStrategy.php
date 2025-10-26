@@ -4,6 +4,7 @@ namespace Carone\Media\Strategies;
 
 use Carone\Media\Contracts\MediaUploadStrategyInterface;
 use Carone\Media\Contracts\MediaRetrievalStrategyInterface;
+use Carone\Media\Enums\MediaType;
 use Carone\Media\Models\MediaResource;
 use Carone\Media\Utilities\MediaUtilities;
 use Illuminate\Http\UploadedFile;
@@ -12,9 +13,9 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AudioStrategy implements MediaUploadStrategyInterface, MediaRetrievalStrategyInterface
 {
-    public function getType(): string
+    public function getType(): MediaType
     {
-        return 'audio';
+        return MediaType::AUDIO;
     }
 
     public function supports(UploadedFile $file): bool
@@ -33,7 +34,7 @@ class AudioStrategy implements MediaUploadStrategyInterface, MediaRetrievalStrat
 
     public function upload(UploadedFile $file, array $data): MediaResource
     {
-        $storagePath = MediaUtilities::getStoragePath($this->getType());
+        $storagePath = MediaUtilities::getStoragePath($this->getType()->value);
         $disk = config('media.disk', 'public');
         
         // Ensure directory exists
@@ -48,7 +49,7 @@ class AudioStrategy implements MediaUploadStrategyInterface, MediaRetrievalStrat
         $file->storeAs($storagePath, $filename, $disk);
 
         return MediaResource::create([
-            'type' => $this->getType(),
+            'type' => $this->getType()->value,
             'source' => 'local',
             'file_name' => $filename,
             'path' => $storagePath . '/' . $filename,
@@ -66,7 +67,7 @@ class AudioStrategy implements MediaUploadStrategyInterface, MediaRetrievalStrat
     public function uploadExternal(string $url, array $data): MediaResource
     {
         return MediaResource::create([
-            'type' => $this->getType(),
+            'type' => $this->getType()->value,
             'source' => 'external',
             'url' => $url,
             'name' => $data['name'] ?? 'External Audio',
