@@ -146,8 +146,8 @@ class StoreMediaDataTest extends TestCase
         $this->assertArrayHasKey('file_name', $rules);
         $this->assertArrayHasKey('path', $rules);
 
-        $this->assertContains('required|file', $rules['file']);
-        $this->assertContains('nullable|string|max:255', $rules['file_name']);
+        $this->assertSame('required|file', $rules['file']);
+        $this->assertSame('nullable|string|max:255', $rules['file_name']);
     }
 
     /** @test */
@@ -259,7 +259,7 @@ class StoreMediaDataTest extends TestCase
         $this->assertArrayHasKey('date', $rules);
         $this->assertArrayHasKey('url', $rules);
 
-        $this->assertContains('required|url|max:1000', $rules['url']);
+        $this->assertSame('required|url|max:1000', $rules['url']);
     }
 
     /** @test */
@@ -293,13 +293,13 @@ class StoreMediaDataTest extends TestCase
         
         // Test all media types
         $types = [
-            MediaType::IMAGE => 'https://example.com/image.jpg',
-            MediaType::VIDEO => 'https://example.com/video.mp4',
-            MediaType::AUDIO => 'https://example.com/audio.mp3',
-            MediaType::DOCUMENT => 'https://example.com/document.pdf',
+            [MediaType::IMAGE, 'https://example.com/image.jpg'],
+            [MediaType::VIDEO, 'https://example.com/video.mp4'],
+            [MediaType::AUDIO, 'https://example.com/audio.mp3'],
+            [MediaType::DOCUMENT, 'https://example.com/document.pdf'],
         ];
 
-        foreach ($types as $type => $url) {
+        foreach ($types as [$type, $url]) {
             $data = new StoreExternalMediaData(
                 type: $type,
                 url: $url,

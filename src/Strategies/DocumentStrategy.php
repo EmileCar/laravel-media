@@ -25,10 +25,8 @@ class DocumentStrategy extends MediaStrategy
         return MediaResource::create([
             'type' => $this->getType()->value,
             'source' => 'local',
-            'file_name' => $fileReference->filename,
-            'extension' => $fileReference->extension,
+            'path' => $fileReference->getFullPath(),
             'disk' => $fileReference->disk,
-            'directory' => $fileReference->directory,
             'display_name' => $data->name,
             'description' => $data->description,
             'date' => $data->date,
