@@ -11,10 +11,8 @@ return new class extends Migration {
             $table->id();
             $table->enum('type', ['image', 'video', 'audio', 'document']);
             $table->enum('source', ['local', 'external'])->default('local');
-            $table->string('file_name')->nullable();
-            $table->string('extension')->nullable();
+            $table->string('path')->nullable();
             $table->string('disk')->nullable();
-            $table->string('directory')->nullable();
             $table->string('url')->nullable();
             $table->string('display_name')->nullable();
             $table->text('description')->nullable();

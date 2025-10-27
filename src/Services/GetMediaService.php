@@ -30,7 +30,7 @@ class GetMediaService extends MediaService implements GetMediaServiceInterface, 
     public function serveMedia(string $path): BinaryFileResponse
     {
         $media = MediaResource::where('source', 'local')
-            ->whereRaw("CONCAT(directory, '/', file_name, '.', extension) = ?", [$path])
+            ->where('path', $path)
             ->firstOrFail();
 
         $strategy = $this->getStrategy($media->type);

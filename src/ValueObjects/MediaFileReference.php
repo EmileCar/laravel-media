@@ -14,6 +14,21 @@ final readonly class MediaFileReference
         public string $directory,
     ) {}
 
+    /**
+     * Create a MediaFileReference from a file path
+     */
+    public static function fromPath(string $path, string $disk): self
+    {
+        $pathInfo = pathinfo($path);
+        
+        return new self(
+            filename: $pathInfo['filename'] ?? '',
+            extension: $pathInfo['extension'] ?? '',
+            disk: $disk,
+            directory: ($pathInfo['dirname'] ?? '') !== '.' ? ($pathInfo['dirname'] ?? '') : '',
+        );
+    }
+
     public function getFileNameWithExtension(): string
     {
         return "{$this->filename}.{$this->extension}";

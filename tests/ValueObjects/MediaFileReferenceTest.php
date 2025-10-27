@@ -24,6 +24,59 @@ class MediaFileReferenceTest extends TestCase
     }
 
     /** @test */
+    public function it_can_be_created_from_path(): void
+    {
+        $reference = MediaFileReference::fromPath('media/images/test-file.jpg', 'public');
+
+        $this->assertSame('test-file', $reference->filename);
+        $this->assertSame('jpg', $reference->extension);
+        $this->assertSame('public', $reference->disk);
+        $this->assertSame('media/images', $reference->directory);
+    }
+
+    /** @test */
+    public function it_handles_from_path_edge_cases(): void
+    {
+        // Path without directory
+        $reference1 = MediaFileReference::fromPath('test.jpg', 'public');
+        $this->assertSame('test', $reference1->filename);
+        $this->assertSame('jpg', $reference1->extension);
+        $this->assertSame('', $reference1->directory);
+
+        // Path without extension
+        $reference2 = MediaFileReference::fromPath('media/test', 'public');
+        $this->assertSame('test', $reference2->filename);
+        $this->assertSame('', $reference2->extension);
+        $this->assertSame('media', $reference2->directory);
+
+        // Deep nested path
+        $reference3 = MediaFileReference::fromPath('media/images/2024/01/file.png', 'local');
+        $this->assertSame('file', $reference3->filename);
+        $this->assertSame('png', $reference3->extension);
+        $this->assertSame('media/images/2024/01', $reference3->directory);
+
+        // Empty path
+        $reference4 = MediaFileReference::fromPath('', 'public');
+        $this->assertSame('', $reference4->filename);
+        $this->assertSame('', $reference4->extension);
+        $this->assertSame('', $reference4->directory);
+    }
+
+    /** @test */
+    public function it_creates_equivalent_objects_from_path_and_constructor(): void
+    {
+        $fromPath = MediaFileReference::fromPath('media/images/test.jpg', 'public');
+        $fromConstructor = new MediaFileReference('test', 'jpg', 'public', 'media/images');
+
+        $this->assertSame($fromConstructor->filename, $fromPath->filename);
+        $this->assertSame($fromConstructor->extension, $fromPath->extension);
+        $this->assertSame($fromConstructor->disk, $fromPath->disk);
+        $this->assertSame($fromConstructor->directory, $fromPath->directory);
+        $this->assertSame($fromConstructor->getFileNameWithExtension(), $fromPath->getFileNameWithExtension());
+        $this->assertSame($fromConstructor->getFullPath(), $fromPath->getFullPath());
+    }
+
+    /** @test */
     public function it_generates_correct_filename_with_extension(): void
     {
         $reference = new MediaFileReference('test-file', 'jpg', 'public', 'media');
