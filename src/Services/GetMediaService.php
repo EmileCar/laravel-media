@@ -37,7 +37,7 @@ class GetMediaService extends MediaService implements GetMediaServiceInterface, 
         return $strategy->getMediaFile($media);
     }
 
-    public function search(SearchCriteria $criteria, ?int $offset, ?int $limit): LengthAwarePaginator
+    public function search(SearchCriteria $criteria, ?int $offset = null, ?int $limit = null): LengthAwarePaginator
     {
         $query = $this->applySearchCriteria($criteria);
 

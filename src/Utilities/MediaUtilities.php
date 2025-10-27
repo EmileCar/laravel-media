@@ -47,4 +47,36 @@ class MediaUtilities
 
         return $mimeTypes[$extension] ?? $defaultType;
     }
+
+    /**
+     * Auto-detect media type from file extension
+     */
+    public static function autoDetectTypeFromExtension($extension): MediaType
+    {
+        $extension = strtolower($extension);
+
+        $typeMap = [
+            'jpg' => MediaType::IMAGE,
+            'jpeg' => MediaType::IMAGE,
+            'png' => MediaType::IMAGE,
+            'gif' => MediaType::IMAGE,
+            'webp' => MediaType::IMAGE,
+            'mp4' => MediaType::VIDEO,
+            'mov' => MediaType::VIDEO,
+            'avi' => MediaType::VIDEO,
+            'mp3' => MediaType::AUDIO,
+            'wav' => MediaType::AUDIO,
+            'pdf' => MediaType::DOCUMENT,
+            'doc' => MediaType::DOCUMENT,
+            'docx' => MediaType::DOCUMENT,
+            'xls' => MediaType::DOCUMENT,
+            'xlsx' => MediaType::DOCUMENT,
+        ];
+
+        if (isset($typeMap[$extension])) {
+            return $typeMap[$extension];
+        }
+
+        throw new \InvalidArgumentException("Could not auto-detect media type for extension: {$extension}");
+    }
 }

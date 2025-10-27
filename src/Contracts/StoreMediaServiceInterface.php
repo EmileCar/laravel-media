@@ -3,7 +3,6 @@
 namespace Carone\Media\Contracts;
 
 use Carone\Media\Models\MediaResource;
-use Carone\Media\ValueObjects\MediaFileReference;
 use Carone\Media\ValueObjects\StoreMediaData;
 
 interface StoreMediaServiceInterface

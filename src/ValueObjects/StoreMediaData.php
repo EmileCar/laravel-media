@@ -34,9 +34,9 @@ abstract class StoreMediaData
         $enabledTypes = array_map(fn($t) => $t->value, MediaUtilities::getEnabled());
         return [
             'type' => 'required|string|in:' . implode(',', $enabledTypes),
-            'name' => 'required|string|max:255',
+            'name' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'date' => 'required|date',
+            'date' => 'nullable|date',
         ];
     }
 

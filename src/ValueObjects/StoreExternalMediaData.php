@@ -12,7 +12,7 @@ final class StoreExternalMediaData extends StoreMediaData
     public function __construct(
         MediaType $type,
         public readonly string $url,
-        string $name,
+        ?string $name,
         ?string $description,
         ?CarbonInterface $date,
     ) {

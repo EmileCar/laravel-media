@@ -9,11 +9,36 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 interface GetMediaServiceInterface
 {
+    /**
+     * Get media resource by ID
+     *
+     * @param int $id
+     * @return MediaResource
+     */
     public function getById(int $id): MediaResource;
 
+    /**
+     * Get available media types
+     *
+     * @return array
+     */
     public function getMediaTypes(): array;
 
+    /**
+     * Serve media file by path
+     *
+     * @param string $path
+     * @return BinaryFileResponse
+     */
     public function serveMedia(string $path): BinaryFileResponse;
 
-    public function search(SearchCriteria $criteria, ?int $offset, ?int $limit): LengthAwarePaginator;
+    /**
+     * Search media resources based on criteria
+     *
+     * @param SearchCriteria $criteria
+     * @param int|null $offset
+     * @param int|null $limit
+     * @return LengthAwarePaginator
+     */
+    public function search(SearchCriteria $criteria, ?int $offset = null, ?int $limit = null): LengthAwarePaginator;
 }
