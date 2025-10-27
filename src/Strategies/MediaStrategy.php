@@ -25,7 +25,7 @@ abstract class MediaStrategy
         return MediaModel::create([
             'type' => $this->getType()->value,
             'source' => 'local',
-            'path' => $fileReference->getFullPath(),
+            'path' => $fileReference->getPath(),
             'disk' => $fileReference->disk,
             'display_name' => $data->name,
             'description' => $data->description,
@@ -56,7 +56,7 @@ abstract class MediaStrategy
     public function getMediaFile(MediaResource $media): BinaryFileResponse
     {
         $fileReference = $media->loadFileReference();
-        if (!MediaStorageHelper::doesFileExist($fileReference->disk, $fileReference->getFullPath())) {
+        if (!MediaStorageHelper::doesFileExist($fileReference->disk, $fileReference->getPath())) {
             abort(404, 'Media file not found');
         }
 
@@ -99,6 +99,6 @@ abstract class MediaStrategy
             );
         }
 
-        return new MediaFileReference($finalName, $extension, $diskName, $storageBase);
+        return new MediaFileReference($finalName, $extension, $diskName, $data->directory);
     }
 }

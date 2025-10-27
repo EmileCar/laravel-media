@@ -25,7 +25,7 @@ class AudioStrategy extends MediaStrategy
         return MediaModel::create([
             'type' => $this->getType()->value,
             'source' => 'local',
-            'path' => $fileReference->getFullPath(),
+            'path' => $fileReference->getPath(),
             'disk' => $fileReference->disk,
             'display_name' => $data->name,
             'description' => $data->description,

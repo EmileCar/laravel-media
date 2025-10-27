@@ -11,7 +11,7 @@ class MediaStorageHelper
 
     public static function getPhysicalPath(MediaFileReference $fileReference): string
     {
-        return Storage::disk($fileReference->disk)->path($fileReference->getFullPath());
+        return Storage::disk($fileReference->disk)->path($fileReference->getStoragePath());
     }
 
     public static function storeFile(MediaFileReference $fileReference, string $data): void
@@ -21,7 +21,7 @@ class MediaStorageHelper
 
     public static function deleteFile(MediaFileReference $fileReference): void
     {
-        Storage::disk($fileReference->disk)->delete($fileReference->getFullPath());
+        Storage::disk($fileReference->disk)->delete($fileReference->getPath());
     }
 
     /**

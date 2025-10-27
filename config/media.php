@@ -18,6 +18,7 @@ return [
     |--------------------------------------------------------------------------
     | Configure where uploaded media should be placed on the disk.
     | Replace {path} with the appropriate path segment.
+    | When storing a file with path 'images/2024/06' for example, the final storage path will be 'media/images/2024/06'.
     |--------------------------------------------------------------------------
     */
     'storage_path' => 'media/{path}',
@@ -49,10 +50,10 @@ return [
     |--------------------------------------------------------------------------
     | Thumbnail Generation
     |--------------------------------------------------------------------------
-    | Enable or disable automatic thumbnail generation for image uploads.
+    | Enable or disable thumbnail generation for image uploads.
     |---------------------------------------------------------------------------
     */
-    'generate_thumbnails' => true,
+    'enable_thumbnails' => true,
 
     /*
     |--------------------------------------------------------------------------

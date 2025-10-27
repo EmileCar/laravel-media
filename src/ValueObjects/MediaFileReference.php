@@ -2,6 +2,8 @@
 
 namespace Carone\Media\ValueObjects;
 
+use Carone\Media\Utilities\MediaStorageHelper;
+
 /**
  * A reference to a file that is stored or to be stored
  */
@@ -20,7 +22,7 @@ final readonly class MediaFileReference
     public static function fromPath(string $path, string $disk): self
     {
         $pathInfo = pathinfo($path);
-        
+
         return new self(
             filename: $pathInfo['filename'] ?? '',
             extension: $pathInfo['extension'] ?? '',
@@ -34,7 +36,11 @@ final readonly class MediaFileReference
         return "{$this->filename}.{$this->extension}";
     }
 
-    public function getFullPath(): string
+    /**
+    * Get the path relative to the storage_path configuration
+     * @return string
+     */
+    public function getPath(): string
     {
         $dir = trim($this->directory, '/');
 
@@ -43,5 +49,14 @@ final readonly class MediaFileReference
         }
 
         return $dir . '/' . $this->getFileNameWithExtension();
+    }
+
+    /**
+     * Get the full storage location path for this file reference
+     * @return string
+     */
+    public function getStoragePath(): string
+    {
+        return MediaStorageHelper::resolveStoragePath($this->getPath());
     }
 }
