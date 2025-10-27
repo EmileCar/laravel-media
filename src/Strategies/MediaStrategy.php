@@ -3,6 +3,7 @@
 namespace Carone\Media\Strategies;
 
 use Carone\Media\Models\MediaResource;
+use Carone\Media\Utilities\MediaModel;
 use Carone\Media\Utilities\MediaStorageHelper;
 use Carone\Media\Utilities\MediaUtilities;
 use Carone\Media\ValueObjects\MediaFileReference;
@@ -21,7 +22,7 @@ abstract class MediaStrategy
 
         MediaStorageHelper::storeFile($fileReference, file_get_contents($data->file->getRealPath()));
 
-        return MediaResource::create([
+        return MediaModel::create([
             'type' => $this->getType()->value,
             'source' => 'local',
             'path' => $fileReference->getFullPath(),
@@ -39,7 +40,7 @@ abstract class MediaStrategy
 
     public function storeExternalFile(StoreExternalMediaData $data): MediaResource
     {
-        return MediaResource::create([
+        return MediaModel::create([
             'type' => $this->getType()->value,
             'source' => 'external',
             'url' => $data->url,

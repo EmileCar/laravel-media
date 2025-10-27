@@ -8,6 +8,7 @@ use Carone\Common\Search\SearchCriteria;
 use Carone\Common\Search\SearchFilter;
 use Carone\Media\Contracts\GetMediaServiceInterface;
 use Carone\Media\Utilities\MediaUtilities;
+use Carone\Media\Utilities\MediaModel;
 use Carone\Media\Models\MediaResource;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -19,7 +20,7 @@ class GetMediaService extends MediaService implements GetMediaServiceInterface, 
 
     public function getById(int $id): MediaResource
     {
-        return MediaResource::findOrFail($id);
+        return MediaModel::findOrFail($id);
     }
 
     public function getMediaTypes(): array
@@ -29,7 +30,7 @@ class GetMediaService extends MediaService implements GetMediaServiceInterface, 
 
     public function serveMedia(string $path): BinaryFileResponse
     {
-        $media = MediaResource::where('source', 'local')
+        $media = MediaModel::where('source', 'local')
             ->where('path', $path)
             ->firstOrFail();
 
@@ -51,7 +52,7 @@ class GetMediaService extends MediaService implements GetMediaServiceInterface, 
 
     public function applySearchCriteria(SearchCriteria $searchCriteria): Builder
     {
-        $query = MediaResource::query();
+        $query = MediaModel::getClass()::query();
 
         if ($searchCriteria->searchTerm->hasValue()) {
             $terms = $searchCriteria->searchTerm->getTermsForQuery();

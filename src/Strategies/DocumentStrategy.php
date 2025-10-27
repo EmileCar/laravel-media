@@ -3,6 +3,7 @@
 namespace Carone\Media\Strategies;
 
 use Carone\Media\Strategies\MediaStrategy;
+use Carone\Media\Utilities\MediaModel;
 use Carone\Media\Utilities\MediaStorageHelper;
 use Carone\Media\ValueObjects\MediaType;
 use Carone\Media\ValueObjects\StoreLocalMediaData;
@@ -19,10 +20,9 @@ class DocumentStrategy extends MediaStrategy
     {
         $fileReference = $this->createUniqueFileReference($data);
 
-        // Store the original document file without processing
         MediaStorageHelper::storeFile($fileReference, file_get_contents($data->file->getRealPath()));
 
-        return MediaResource::create([
+        return MediaModel::create([
             'type' => $this->getType()->value,
             'source' => 'local',
             'path' => $fileReference->getFullPath(),

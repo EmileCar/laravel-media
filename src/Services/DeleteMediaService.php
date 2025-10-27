@@ -4,7 +4,7 @@ namespace Carone\Media\Services;
 
 use Carone\Media\Contracts\DeleteMediaServiceInterface;
 use Carone\Media\ValueObjects\MediaType;
-use Carone\Media\Models\MediaResource;
+use Carone\Media\Utilities\MediaModel;
 use Carone\Media\Utilities\MediaStorageHelper;
 
 class DeleteMediaService implements DeleteMediaServiceInterface
@@ -13,7 +13,7 @@ class DeleteMediaService implements DeleteMediaServiceInterface
 
     public function delete(int $id): bool
     {
-        $media = MediaResource::findOrFail($id);
+        $media = MediaModel::findOrFail($id);
 
         try {
             if ($fileReference = $media->loadFileReference()) {
@@ -65,7 +65,7 @@ class DeleteMediaService implements DeleteMediaServiceInterface
             throw new \InvalidArgumentException("Media type '{$type->value}' is not enabled");
         }
 
-        $query = MediaResource::where('type', $type);
+        $query = MediaModel::where('type', $type);
 
 
         $mediaItemIds = $query->pluck('id');
