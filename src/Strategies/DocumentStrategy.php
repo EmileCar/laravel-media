@@ -15,26 +15,4 @@ class DocumentStrategy extends MediaStrategy
     {
         return MediaType::DOCUMENT;
     }
-
-    public function storeLocalFile(StoreLocalMediaData $data): MediaResource
-    {
-        $fileReference = $this->createUniqueFileReference($data);
-
-        MediaStorageHelper::storeFile($fileReference, file_get_contents($data->file->getRealPath()));
-
-        return MediaModel::create([
-            'type' => $this->getType()->value,
-            'source' => 'local',
-            'path' => $fileReference->getPath(),
-            'disk' => $fileReference->disk,
-            'display_name' => $data->name,
-            'description' => $data->description,
-            'date' => $data->date,
-            'meta' => [
-                'original_name' => $data->file->getClientOriginalName(),
-                'size' => $data->file->getSize(),
-                'mime_type' => $data->file->getMimeType(),
-            ],
-        ]);
-    }
 }

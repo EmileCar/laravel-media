@@ -106,7 +106,8 @@ class StoreLocalMediaDataBuilder
             name: $this->name,
             description: $this->description,
             date: $this->date,
-            directory: $this->directory
+            directory: $this->directory,
+            disk: $this->disk,
         );
     }
 }

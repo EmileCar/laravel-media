@@ -52,7 +52,7 @@ class StoreMediaDataTest extends TestCase
     {
         $file = UploadedFile::fake()->image('test.jpg');
         $date = Carbon::now();
-        
+
         $data = new StoreLocalMediaData(
             type: MediaType::IMAGE,
             file: $file,
@@ -77,7 +77,7 @@ class StoreMediaDataTest extends TestCase
     {
         $file = UploadedFile::fake()->image('original.jpg');
         $date = Carbon::parse('2024-01-15');
-        
+
         $data = new StoreLocalMediaData(
             type: MediaType::IMAGE,
             file: $file,
@@ -104,7 +104,7 @@ class StoreMediaDataTest extends TestCase
     {
         $file = UploadedFile::fake()->image('original.jpg');
         $date = Carbon::now();
-        
+
         $data = new StoreLocalMediaData(
             type: MediaType::IMAGE,
             file: $file,
@@ -144,7 +144,8 @@ class StoreMediaDataTest extends TestCase
         $this->assertArrayHasKey('date', $rules);
         $this->assertArrayHasKey('file', $rules);
         $this->assertArrayHasKey('file_name', $rules);
-        $this->assertArrayHasKey('path', $rules);
+        $this->assertArrayHasKey('directory', $rules);
+        $this->assertArrayHasKey('disk', $rules);
 
         $this->assertSame('required|file', $rules['file']);
         $this->assertSame('nullable|string|max:255', $rules['file_name']);
@@ -166,14 +167,14 @@ class StoreMediaDataTest extends TestCase
 
         $strategy = $this->createMock(MediaStrategy::class);
         $expectedResource = new MediaResource();
-        
+
         $strategy->expects($this->once())
             ->method('storeLocalFile')
             ->with($data)
             ->willReturn($expectedResource);
 
         $result = $data->storeWith($strategy);
-        
+
         $this->assertSame($expectedResource, $result);
     }
 
@@ -181,7 +182,7 @@ class StoreMediaDataTest extends TestCase
     public function store_external_media_data_can_be_constructed(): void
     {
         $date = Carbon::now();
-        
+
         $data = new StoreExternalMediaData(
             type: MediaType::IMAGE,
             url: 'https://example.com/image.jpg',
@@ -201,7 +202,7 @@ class StoreMediaDataTest extends TestCase
     public function store_external_media_data_can_be_constructed_with_minimal_parameters(): void
     {
         $date = Carbon::now();
-        
+
         $data = new StoreExternalMediaData(
             type: MediaType::VIDEO,
             url: 'https://example.com/video.mp4',
@@ -221,7 +222,7 @@ class StoreMediaDataTest extends TestCase
     public function store_external_media_data_to_array_includes_all_data(): void
     {
         $date = Carbon::parse('2024-01-15');
-        
+
         $data = new StoreExternalMediaData(
             type: MediaType::VIDEO,
             url: 'https://example.com/video.mp4',
@@ -275,14 +276,14 @@ class StoreMediaDataTest extends TestCase
 
         $strategy = $this->createMock(MediaStrategy::class);
         $expectedResource = new MediaResource();
-        
+
         $strategy->expects($this->once())
             ->method('storeExternalFile')
             ->with($data)
             ->willReturn($expectedResource);
 
         $result = $data->storeWith($strategy);
-        
+
         $this->assertSame($expectedResource, $result);
     }
 
@@ -290,7 +291,7 @@ class StoreMediaDataTest extends TestCase
     public function store_media_data_works_with_different_media_types(): void
     {
         $date = Carbon::now();
-        
+
         // Test all media types
         $types = [
             [MediaType::IMAGE, 'https://example.com/image.jpg'],
@@ -318,7 +319,7 @@ class StoreMediaDataTest extends TestCase
     public function store_local_media_data_works_with_different_file_types(): void
     {
         $date = Carbon::now();
-        
+
         $files = [
             'image' => UploadedFile::fake()->image('test.jpg'),
             'document' => UploadedFile::fake()->create('document.pdf', 1000, 'application/pdf'),
@@ -326,7 +327,7 @@ class StoreMediaDataTest extends TestCase
 
         foreach ($files as $type => $file) {
             $mediaType = $type === 'image' ? MediaType::IMAGE : MediaType::DOCUMENT;
-            
+
             $data = new StoreLocalMediaData(
                 type: $mediaType,
                 file: $file,
@@ -347,7 +348,7 @@ class StoreMediaDataTest extends TestCase
     public function store_media_data_handles_edge_case_inputs(): void
     {
         $date = Carbon::now();
-        
+
         // Very long name
         $longName = str_repeat('A', 300);
         $data1 = new StoreExternalMediaData(
@@ -386,7 +387,7 @@ class StoreMediaDataTest extends TestCase
     public function store_media_data_preserves_date_precision(): void
     {
         $preciseDate = Carbon::parse('2024-01-15 14:30:45.123456');
-        
+
         $data = new StoreExternalMediaData(
             type: MediaType::IMAGE,
             url: 'https://example.com/image.jpg',
@@ -396,7 +397,7 @@ class StoreMediaDataTest extends TestCase
         );
 
         $this->assertSame($preciseDate, $data->date);
-        
+
         // to_array should format as date string
         $array = $data->toArray();
         $this->assertSame('2024-01-15', $array['date']);
@@ -407,7 +408,7 @@ class StoreMediaDataTest extends TestCase
     {
         $file = UploadedFile::fake()->image('test-file_name.jpg');
         $date = Carbon::now();
-        
+
         $data = new StoreLocalMediaData(
             type: MediaType::IMAGE,
             file: $file,
@@ -428,7 +429,7 @@ class StoreMediaDataTest extends TestCase
     public function store_external_media_data_handles_various_url_formats(): void
     {
         $date = Carbon::now();
-        
+
         $urls = [
             'https://example.com/image.jpg',
             'http://subdomain.example.org/path/to/file.png',
@@ -447,7 +448,7 @@ class StoreMediaDataTest extends TestCase
             );
 
             $this->assertSame($url, $data->url);
-            
+
             $array = $data->toArray();
             $this->assertSame($url, $array['url']);
         }
