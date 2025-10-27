@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5d6cafb3b206699e4552d39254b54c5b",
+    "content-hash": "5e351551795814aadad1601aadeebd1f",
     "packages": [
         {
             "name": "brick/math",
@@ -137,21 +137,25 @@
         },
         {
             "name": "carone/laravel-common",
-            "version": "v1.0.0",
+            "version": "v1.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/EmileCar/laravel-common.git",
-                "reference": "d7d86403f43edc3436d130802f29daeeffc387d6"
+                "reference": "4cee66befadb83f24903b638b2e6715b4f6e41ed"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/EmileCar/laravel-common/zipball/d7d86403f43edc3436d130802f29daeeffc387d6",
-                "reference": "d7d86403f43edc3436d130802f29daeeffc387d6",
+                "url": "https://api.github.com/repos/EmileCar/laravel-common/zipball/4cee66befadb83f24903b638b2e6715b4f6e41ed",
+                "reference": "4cee66befadb83f24903b638b2e6715b4f6e41ed",
                 "shasum": ""
             },
             "require": {
                 "illuminate/database": "^12.35",
                 "php": "^8.2"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.6",
+                "phpunit/phpunit": "^11.0"
             },
             "type": "library",
             "autoload": {
@@ -170,9 +174,9 @@
             ],
             "support": {
                 "issues": "https://github.com/EmileCar/laravel-common/issues",
-                "source": "https://github.com/EmileCar/laravel-common/tree/v1.0.0"
+                "source": "https://github.com/EmileCar/laravel-common/tree/v1.3"
             },
-            "time": "2025-10-25T20:40:01+00:00"
+            "time": "2025-10-27T14:12:33+00:00"
         },
         {
             "name": "dflydev/dot-access-data",

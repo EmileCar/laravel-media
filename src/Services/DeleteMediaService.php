@@ -2,6 +2,8 @@
 
 namespace Carone\Media\Services;
 
+use Carone\Common\BulkOperations\BulkOperation;
+use Carone\Common\BulkOperations\BulkOperationResult;
 use Carone\Media\Contracts\DeleteMediaServiceInterface;
 use Carone\Media\ValueObjects\MediaType;
 use Carone\Media\Utilities\MediaModel;
@@ -36,38 +38,22 @@ class DeleteMediaService implements DeleteMediaServiceInterface
         }
     }
 
-    public function deleteMultiple(array $ids): array
+    public function deleteMultiple(array $ids): BulkOperationResult
     {
-        $deleted = 0;
-        $failed = [];
+        $bulkOperation = BulkOperation::create(function ($id) {
+            return $this->delete($id);
+        });
 
-        foreach ($ids as $id) {
-            try {
-                $this->delete($id);
-                $deleted++;
-            } catch (\Exception $e) {
-                $failed[] = [
-                    'id' => $id,
-                    'error' => $e->getMessage()
-                ];
-            }
-        }
-
-        return [
-            'deleted' => $deleted,
-            'failed' => $failed,
-        ];
+        return $bulkOperation->execute($ids);
     }
 
-    public function deleteByType(MediaType $type): array
+    public function deleteByType(MediaType $type): BulkOperationResult
     {
         if (!$type->isEnabled()) {
             throw new \InvalidArgumentException("Media type '{$type->value}' is not enabled");
         }
 
         $query = MediaModel::where('type', $type);
-
-
         $mediaItemIds = $query->pluck('id');
 
         return $this->deleteMultiple($mediaItemIds->toArray());

@@ -18,6 +18,7 @@ final class StoreLocalMediaData extends StoreMediaData
         ?string $description,
         ?CarbonInterface $date,
         public readonly ?string $directory,
+        public readonly ?string $disk = null,
     ) {
         parent::__construct($type, $name, $description, $date);
     }
@@ -28,6 +29,7 @@ final class StoreLocalMediaData extends StoreMediaData
             'file' => $this->file,
             'file_name' => $this->fileName ?? $this->file->getClientOriginalName(),
             'directory' => $this->directory,
+            'disk' => $this->disk,
         ]);
     }
 
@@ -36,7 +38,8 @@ final class StoreLocalMediaData extends StoreMediaData
         return array_merge(parent::baseRules(), [
             'file' => 'required|file',
             'file_name' => 'nullable|string|max:255',
-            'path' => 'nullable|string|max:500',
+            'directory' => 'nullable|string|max:500',
+            'disk' => 'nullable|string|max:255',
         ]);
     }
 

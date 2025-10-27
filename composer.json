@@ -8,7 +8,7 @@
         "intervention/image-laravel": "^1.5",
         "illuminate/database": "^12.35",
         "laravel/framework": "^12.35",
-        "carone/laravel-common": "^1.0"
+        "carone/laravel-common": "^1.3"
     },
     "require-dev": {
         "phpunit/phpunit": "^11.0",

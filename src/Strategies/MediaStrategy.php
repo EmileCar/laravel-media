@@ -75,10 +75,10 @@ abstract class MediaStrategy
      * @throws \InvalidArgumentException if a user-specified filename already exists.
      * @return MediaFileReference
      */
-    protected function createUniqueFileReference(StoreLocalMediaData $data): MediaFileReference
+    protected function createUniqueFileReference(StoreLocalMediaData $data): MediaFileReference // use interface?
     {
         $storageBase = MediaStorageHelper::resolveStoragePath($data->directory);
-        $diskName = config('media.disk', 'public');
+        $diskName = $data->disk ?? config('media.disk', 'public');
 
         $extension = strtolower($data->file->getClientOriginalExtension());
         $base = $data->fileName ?? $data->name ?? pathinfo($data->file->getClientOriginalName(), PATHINFO_FILENAME);

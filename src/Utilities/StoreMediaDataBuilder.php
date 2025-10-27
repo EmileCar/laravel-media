@@ -49,6 +49,7 @@ class StoreLocalMediaDataBuilder
     protected UploadedFile $file;
     protected ?string $fileName = null;
     protected ?string $directory = null;
+    protected ?string $disk = null;
 
     public function __construct(UploadedFile $file)
     {
@@ -56,7 +57,9 @@ class StoreLocalMediaDataBuilder
     }
 
     /**
-     * Set a custom filename (without extension)
+     * Set a custom filename (without extension).
+     * If the path with this filename already exists, an error will be thrown.
+     * If the filename is not set, a unique filename will be generated based on either the provided name or original filename.
      */
     public function useFileName(string $fileName): self
     {
@@ -74,13 +77,11 @@ class StoreLocalMediaDataBuilder
     }
 
     /**
-     * Use original filename as display name if name is not set
+     * Set the disk name
      */
-    public function useOriginalName(): self
+    public function useDisk(string $disk): self
     {
-        if (!$this->name) {
-            $this->name = pathinfo($this->file->getClientOriginalName(), PATHINFO_FILENAME);
-        }
+        $this->disk = $disk;
         return $this;
     }
 
