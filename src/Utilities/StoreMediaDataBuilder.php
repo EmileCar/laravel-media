@@ -4,6 +4,7 @@ namespace Carone\Media\Utilities;
 
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
+use Carone\Media\Traits\BuildsCommonMediaData;
 use Carone\Media\ValueObjects\MediaType;
 use Carone\Media\ValueObjects\StoreExternalMediaData;
 use Carone\Media\ValueObjects\StoreLocalMediaData;
@@ -13,103 +14,38 @@ use Illuminate\Http\UploadedFile;
  * Flexible builder for creating StoreMediaData objects
  *
  * Usage:
- * - StoreMediaDataBuilder::fromLocalSource($file)->type(MediaType::IMAGE)->name('My Image')->build()
- * - StoreMediaDataBuilder::fromExternalSource($url)->type(MediaType::VIDEO)->name('My Video')->build()
+ * - StoreMediaDataBuilder::fromFile($file)->type(MediaType::IMAGE)->name('My Image')->build()
+ * - StoreMediaDataBuilder::fromExternalUrl($url)->type(MediaType::VIDEO)->name('My Video')->build()
  */
 class StoreMediaDataBuilder
 {
     /**
      * Create a builder for local media storage
+     *
+     * @param UploadedFile $file
+     * @return \Carone\Media\Utilities\StoreLocalMediaDataBuilder
      */
-    public static function fromLocalSource(UploadedFile $file): StoreLocalMediaDataBuilder
+    public static function fromFile(UploadedFile $file): StoreLocalMediaDataBuilder
     {
         return new StoreLocalMediaDataBuilder($file);
     }
 
     /**
      * Create a builder for external media storage
+     *
+     * @param string $url
+     * @return \Carone\Media\Utilities\StoreExternalMediaDataBuilder
      */
-    public static function fromExternalSource(string $url): StoreExternalMediaDataBuilder
+    public static function fromExternalUrl(string $url): StoreExternalMediaDataBuilder
     {
         return new StoreExternalMediaDataBuilder($url);
     }
 }
 
-abstract class BaseStoreMediaDataBuilder
+class StoreLocalMediaDataBuilder
 {
-    protected ?MediaType $type = null;
-    protected ?string $name = null;
-    protected ?string $description = null;
-    protected ?CarbonInterface $date = null;
-    protected array $meta = [];
+    use BuildsCommonMediaData;
 
-    abstract protected function autoDetectType(): MediaType;
-
-    /**
-     * Set the media type
-     */
-    public function forType(MediaType|string $type): self
-    {
-        $type = $type instanceof MediaType ? $type : MediaType::tryFrom($type);
-        if (!$type) {
-            throw new \InvalidArgumentException("Invalid media type: {$type}");
-        }
-        $this->type = $type;
-        return $this;
-    }
-
-
-    /**
-     * Set the display name
-     */
-    public function withName(string $name): self
-    {
-        $this->name = $name;
-        return $this;
-    }
-
-    /**
-     * Set the description
-     */
-    public function withDescription(?string $description): self
-    {
-        $this->description = $description;
-        return $this;
-    }
-
-    /**
-     * Set the date
-     */
-    public function withDate(CarbonInterface $date): self
-    {
-        $this->date = $date;
-        return $this;
-    }
-
-    /**
-     * Add metadata
-     */
-    public function withMeta(array $meta): self
-    {
-        $this->meta = array_merge($this->meta, $meta);
-        return $this;
-    }
-
-    /**
-     * Add a single metadata key-value pair
-     */
-    public function addMeta(string $key, mixed $value): self
-    {
-        $this->meta[$key] = $value;
-        return $this;
-    }
-}
-
-/**
- * Builder for local media storage
- */
-class StoreLocalMediaDataBuilder extends BaseStoreMediaDataBuilder
-{
     protected UploadedFile $file;
     protected ?string $fileName = null;
     protected ?string $directory = null;
@@ -174,11 +110,10 @@ class StoreLocalMediaDataBuilder extends BaseStoreMediaDataBuilder
     }
 }
 
-/**
- * Builder for external media storage
- */
-class StoreExternalMediaDataBuilder extends BaseStoreMediaDataBuilder
+class StoreExternalMediaDataBuilder
 {
+    use BuildsCommonMediaData;
+
     private string $url;
 
     public function __construct(string $url)
