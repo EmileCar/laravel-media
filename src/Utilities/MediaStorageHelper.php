@@ -73,4 +73,10 @@ class MediaStorageHelper
         $storageBase = config('media.storage_path', 'media/{path}');
         return str_replace('{path}', $path ?? '', $storageBase);
     }
+
+    public static function resolveThumbnailStoragePath(?string $path = null): string
+    {
+        $thumbnailBase = config('media.thumbnail_storage_path', 'media/thumbnails/{path}');
+        return str_replace('{path}', $path ?? '', $thumbnailBase);
+    }
 }

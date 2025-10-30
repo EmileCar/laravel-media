@@ -19,6 +19,7 @@ final class StoreLocalMediaData extends StoreMediaData
         ?CarbonInterface $date,
         public readonly ?string $directory,
         public readonly ?string $disk = null,
+        public readonly bool $generateThumbnail = false,
     ) {
         parent::__construct($type, $name, $description, $date);
     }
@@ -30,6 +31,7 @@ final class StoreLocalMediaData extends StoreMediaData
             'file_name' => $this->fileName ?? $this->file->getClientOriginalName(),
             'directory' => $this->directory,
             'disk' => $this->disk,
+            'generate_thumbnail' => $this->generateThumbnail,
         ]);
     }
 
@@ -40,6 +42,7 @@ final class StoreLocalMediaData extends StoreMediaData
             'file_name' => 'nullable|string|max:255',
             'directory' => 'nullable|string|max:500',
             'disk' => 'nullable|string|max:255',
+            'generate_thumbnail' => 'boolean',
         ]);
     }
 

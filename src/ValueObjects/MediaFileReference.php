@@ -13,7 +13,7 @@ final readonly class MediaFileReference
         public string $filename,
         public string $extension,
         public string $disk,
-        public string $directory,
+        public string $directory = '',
     ) {}
 
     /**

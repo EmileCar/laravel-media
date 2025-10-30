@@ -3,6 +3,7 @@
 namespace Carone\Media\Utilities;
 
 use Carone\Media\ValueObjects\MediaType;
+use Intervention\Image\Drivers\SpecializableEncoder;
 
 class MediaUtilities
 {
@@ -78,5 +79,18 @@ class MediaUtilities
         }
 
         throw new \InvalidArgumentException("Could not auto-detect media type for extension: {$extension}");
+    }
+
+    /**
+     * Save image with specific format
+     */
+    public static function getPossibleEncoder(string $format, int $quality): SpecializableEncoder
+    {
+        return match (strtolower($format)) {
+            'jpg', 'jpeg' => new \Intervention\Image\Encoders\JpegEncoder($quality),
+            'png' => new \Intervention\Image\Encoders\PngEncoder(),
+            'webp' => new \Intervention\Image\Encoders\WebpEncoder($quality),
+            default => new \Intervention\Image\Encoders\JpegEncoder($quality),
+        };
     }
 }

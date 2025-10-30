@@ -10,19 +10,39 @@ use Carone\Media\ValueObjects\MediaFileReference;
 use Carone\Media\ValueObjects\MediaType;
 use Carone\Media\ValueObjects\StoreExternalMediaData;
 use Carone\Media\ValueObjects\StoreLocalMediaData;
+use Illuminate\Http\UploadedFile;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 abstract class MediaStrategy
 {
     abstract public function getType(): MediaType;
 
+    protected function processFile(UploadedFile $file): ?string
+    {
+        return null;
+    }
+
+    protected function generateThumbnail(MediaResource $resource): ?string
+    {
+        return null;
+    }
+
     public function storeLocalFile(StoreLocalMediaData $data): MediaResource
     {
         $fileReference = $this->createUniqueFileReference($data);
 
-        MediaStorageHelper::storeFile($fileReference, file_get_contents($data->file->getRealPath()));
+        $processedPath = $this->processFile($data->file);
 
-        return MediaModel::create([
+        try {
+            $finalPath = $processedPath ?: $data->file->getRealPath();
+            MediaStorageHelper::storeFile($fileReference, file_get_contents($finalPath));
+        } finally {
+            if ($processedPath && file_exists($processedPath)) {
+                @unlink($processedPath);
+            }
+        }
+
+        $model = MediaModel::create([
             'type' => $this->getType()->value,
             'source' => 'local',
             'path' => $fileReference->getPath(),
@@ -36,6 +56,15 @@ abstract class MediaStrategy
                 'mime_type' => $data->file->getMimeType(),
             ],
         ]);
+
+        if ($data->generateThumbnail) {
+            $thumbnailPath = $this->generateThumbnail($model);
+            if ($thumbnailPath) {
+                MediaStorageHelper::storeFile($thumbnailPath, file_get_contents($thumbnailPath));
+            }
+        }
+
+        return $model;
     }
 
     public function storeExternalFile(StoreExternalMediaData $data): MediaResource

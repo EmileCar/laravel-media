@@ -7,6 +7,7 @@ use Carone\Media\Contracts\StoreMediaServiceInterface;
 use Carone\Media\ValueObjects\MediaType;
 use Carone\Media\Models\MediaResource;
 use Carone\Media\ValueObjects\StoreMediaData;
+use Carone\Media\ValueObjects\StoreLocalMediaData;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
 

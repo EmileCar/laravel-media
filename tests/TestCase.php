@@ -25,6 +25,7 @@ abstract class TestCase extends Orchestra
     {
         return [
             CaroneMediaServiceProvider::class,
+            \Intervention\Image\Laravel\ServiceProvider::class,
         ];
     }
 
@@ -46,6 +47,44 @@ abstract class TestCase extends Orchestra
             'video' => ['mimes:mp4,mov,avi', 'max:20480'],
             'audio' => ['mimes:mp3,wav', 'max:10240'],
             'document' => ['mimes:pdf,doc,docx,xls,xlsx', 'max:10240'],
+        ]);
+        $app['config']->set('media.processing', [
+            'image' => [
+                'enabled' => true,
+                'convert_format' => null,
+                'quality' => 85,
+                'resize' => [
+                    'enabled' => false,
+                    'width' => 1920,
+                    'height' => 1080,
+                    'maintain_aspect_ratio' => true,
+                    'upsize' => false,
+                ],
+                'crop' => [
+                    'enabled' => false,
+                    'width' => 800,
+                    'height' => 600,
+                    'position' => 'center',
+                ],
+                'watermark' => [
+                    'enabled' => false,
+                    'path' => null,
+                    'position' => 'bottom-right',
+                    'opacity' => 80,
+                    'margin' => 10,
+                ],
+                'optimize' => true,
+            ],
+            'thumbnail' => [
+                'convert_format' => 'jpg',
+                'quality' => 80,
+                'resize' => [
+                    'width' => 300,
+                    'height' => 300,
+                    'maintain_aspect_ratio' => true,
+                    'upsize' => false,
+                ],
+            ],
         ]);
     }
 

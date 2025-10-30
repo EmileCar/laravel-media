@@ -50,6 +50,7 @@ class StoreLocalMediaDataBuilder
     protected ?string $fileName = null;
     protected ?string $directory = null;
     protected ?string $disk = null;
+    protected bool $generateThumbnail = false;
 
     public function __construct(UploadedFile $file)
     {
@@ -86,6 +87,15 @@ class StoreLocalMediaDataBuilder
     }
 
     /**
+     * Enable thumbnail generation (only for images)
+     */
+    public function withThumbnail(bool $generateThumbnail = true): self
+    {
+        $this->generateThumbnail = $generateThumbnail;
+        return $this;
+    }
+
+    /**
      * Auto-detect media type from file extension
      */
     protected function autoDetectType(): MediaType
@@ -108,6 +118,7 @@ class StoreLocalMediaDataBuilder
             date: $this->date,
             directory: $this->directory,
             disk: $this->disk,
+            generateThumbnail: $this->generateThumbnail,
         );
     }
 }
