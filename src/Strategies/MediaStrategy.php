@@ -22,7 +22,7 @@ abstract class MediaStrategy
         return null;
     }
 
-    protected function generateThumbnail(MediaResource $resource): ?string
+    protected function generateThumbnail(MediaFileReference $fileReference): ?MediaFileReference
     {
         return null;
     }
@@ -58,10 +58,7 @@ abstract class MediaStrategy
         ]);
 
         if ($data->generateThumbnail) {
-            $thumbnailPath = $this->generateThumbnail($model);
-            if ($thumbnailPath) {
-                MediaStorageHelper::storeFile($thumbnailPath, file_get_contents($thumbnailPath));
-            }
+            $this->generateThumbnail($fileReference);
         }
 
         return $model;

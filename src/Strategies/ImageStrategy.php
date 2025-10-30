@@ -51,7 +51,7 @@ class ImageStrategy extends MediaStrategy
     /**
      * Generate thumbnail for the image
      */
-    protected function generateThumbnail(MediaFileReference $fileReference): ?string
+    protected function generateThumbnail(MediaFileReference $fileReference): ?MediaFileReference
     {
         $thumbnailConfig = config('media.processing.thumbnail', []);
 
@@ -59,18 +59,16 @@ class ImageStrategy extends MediaStrategy
             return null;
         }
 
-        
-
         $thumbnailFileReference = new MediaFileReference(
             $fileReference->filename,
-            $config['convert_format'],
+            $thumbnailConfig['convert_format'],
             $fileReference->disk,
             $fileReference->directory
         );
 
         try {
-            ImageProcessor::generateThumbnail($imagePath, $thumbnailFileReference, $thumbnailConfig);
-            return $fileReference->getPath();
+            ImageProcessor::generateThumbnail($fileReference->getStoragePath(), $thumbnailFileReference, $thumbnailConfig);
+            return $thumbnailFileReference;
         } catch (\Exception $e) {
             // Log error but don't fail the main upload
             \Log::warning('Failed to generate thumbnail: ' . $e->getMessage());
