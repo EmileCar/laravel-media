@@ -2,10 +2,8 @@
 
 namespace Carone\Media\ValueObjects;
 
-use Carone\Media\Strategies\AudioStrategy;
-use Carone\Media\Strategies\DocumentStrategy;
-use Carone\Media\Strategies\ImageStrategy;
-use Carone\Media\Strategies\VideoStrategy;
+use Carone\Media\UploadStrategies\UploadImageStrategy;
+use Carone\Media\UploadStrategies\UploadMediaStrategy;
 
 enum MediaType: string
 {
@@ -13,32 +11,6 @@ enum MediaType: string
     case VIDEO = 'video';
     case AUDIO = 'audio';
     case DOCUMENT = 'document';
-
-    /**
-     * Get the strategy class for this media type
-     */
-    public function getStrategyClass(): string
-    {
-        return match($this) {
-            self::IMAGE => ImageStrategy::class,
-            self::VIDEO => VideoStrategy::class,
-            self::AUDIO => AudioStrategy::class,
-            self::DOCUMENT => DocumentStrategy::class,
-        };
-    }
-
-    /**
-     * Get the human-readable label for this media type
-     */
-    public function getLabel(): string
-    {
-        return match($this) {
-            self::IMAGE => 'Image',
-            self::VIDEO => 'Video',
-            self::AUDIO => 'Audio',
-            self::DOCUMENT => 'Document',
-        };
-    }
 
     /**
      * Get validation rules for this media type

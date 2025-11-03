@@ -7,7 +7,6 @@ use Carone\Common\Search\SearchCriteria;
 use Carone\Common\Search\SearchFilter;
 use Carone\Media\Contracts\GetMediaServiceInterface;
 use Carone\Media\Models\MediaResource;
-use Carone\Media\Services\MediaService;
 use Carone\Media\Utilities\MediaModel;
 use Carone\Media\Utilities\MediaStorageHelper;
 use Carone\Media\Utilities\MediaUtilities;
@@ -15,7 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class GetMediaService extends MediaService implements GetMediaServiceInterface, AppliesSearchCriteria
+class GetMediaService implements GetMediaServiceInterface, AppliesSearchCriteria
 {
     public function getResourceById(int $id): MediaResource
     {

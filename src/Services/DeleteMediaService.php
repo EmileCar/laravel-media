@@ -5,12 +5,11 @@ namespace Carone\Media\Services;
 use Carone\Common\BulkOperations\BulkOperation;
 use Carone\Common\BulkOperations\BulkOperationResult;
 use Carone\Media\Contracts\DeleteMediaServiceInterface;
-use Carone\Media\Services\MediaService;
 use Carone\Media\Utilities\MediaModel;
 use Carone\Media\Utilities\MediaStorageHelper;
 use Carone\Media\ValueObjects\MediaType;
 
-class DeleteMediaService extends MediaService implements DeleteMediaServiceInterface
+class DeleteMediaService implements DeleteMediaServiceInterface
 {
     public function delete(int $id): bool
     {

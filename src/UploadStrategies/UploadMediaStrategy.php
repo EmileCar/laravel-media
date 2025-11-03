@@ -1,21 +1,26 @@
 <?php
 
-namespace Carone\Media\Strategies;
+namespace Carone\Media\UploadStrategies;
 
 use Carone\Media\Models\MediaResource;
 use Carone\Media\Utilities\MediaModel;
 use Carone\Media\Utilities\MediaStorageHelper;
 use Carone\Media\Utilities\MediaUtilities;
 use Carone\Media\ValueObjects\MediaFileReference;
-use Carone\Media\ValueObjects\MediaType;
 use Carone\Media\ValueObjects\StoreExternalMediaData;
 use Carone\Media\ValueObjects\StoreLocalMediaData;
+use Carone\Media\ValueObjects\StoreMediaData;
 use Illuminate\Http\UploadedFile;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-abstract class MediaStrategy
+class UploadMediaStrategy
 {
-    abstract public function getType(): MediaType;
+    protected StoreMediaData $data;
+
+    public function __construct(StoreMediaData $data)
+    {
+        $this->data = $data;
+    }
 
     protected function processFile(UploadedFile $file): ?string
     {
@@ -29,7 +34,7 @@ abstract class MediaStrategy
 
     public function storeLocalFile(StoreLocalMediaData $data): MediaResource
     {
-        $fileReference = $this->createUniqueFileReference($data);
+        $fileReference = MediaUtilities::createUniqueFileReference($data);
 
         $processedPath = $this->processFile($data->file);
 
@@ -43,7 +48,7 @@ abstract class MediaStrategy
         }
 
         $model = MediaModel::create([
-            'type' => $this->getType()->value,
+            'type' => $data->type,
             'source' => 'local',
             'path' => $fileReference->getPath(),
             'disk' => $fileReference->disk,
@@ -67,7 +72,7 @@ abstract class MediaStrategy
     public function storeExternalFile(StoreExternalMediaData $data): MediaResource
     {
         return MediaModel::create([
-            'type' => $this->getType()->value,
+            'type' => $data->type,
             'source' => 'external',
             'url' => $data->url,
             'display_name' => $data->name,
@@ -93,38 +98,5 @@ abstract class MediaStrategy
             'Content-Type' => $mimeType,
             'Cache-Control' => 'public, max-age=31536000',
         ]);
-    }
-
-    /**
-     * Create a unique file reference for the given local media data.
-     * @param StoreLocalMediaData $data
-     * @throws \InvalidArgumentException if a user-specified filename already exists.
-     * @return MediaFileReference
-     */
-    protected function createUniqueFileReference(StoreLocalMediaData $data): MediaFileReference // use interface?
-    {
-        $storageBase = MediaStorageHelper::resolveStoragePath($data->directory);
-        $diskName = $data->disk ?? config('media.disk', 'public');
-
-        $extension = strtolower($data->file->getClientOriginalExtension());
-        $base = $data->fileName ?? $data->name ?? pathinfo($data->file->getClientOriginalName(), PATHINFO_FILENAME);
-        $base = MediaStorageHelper::sanitizeFilename($base);
-
-        // User explicitly set a filename —> must fail if it exists
-        // Else, auto-generate a unique filename
-        if ($data->fileName) {
-            $fullPath = "{$storageBase}/{$base}.{$extension}";
-            if (MediaStorageHelper::doesFileExist($diskName, $fullPath)) {
-                throw new \InvalidArgumentException("File '{$base}.{$extension}' already exists in '{$storageBase}'.");
-            }
-            $finalName = $base;
-        } else {
-            $finalName = pathinfo(
-                MediaStorageHelper::generateUniqueFilename($diskName, $storageBase, $base, $extension),
-                PATHINFO_FILENAME
-            );
-        }
-
-        return new MediaFileReference($finalName, $extension, $diskName, $data->directory);
     }
 }

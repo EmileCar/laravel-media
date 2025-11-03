@@ -2,7 +2,7 @@
 
 namespace Carone\Media\ValueObjects;
 
-use Carone\Media\Strategies\MediaStrategy;
+use Carone\Media\UploadStrategies\UploadMediaStrategy;
 use Carbon\CarbonInterface;
 use Carone\Media\Models\MediaResource;
 use Carone\Media\ValueObjects\MediaType;
@@ -33,7 +33,7 @@ final class StoreExternalMediaData extends StoreMediaData
         ]);
     }
 
-    public function storeWith(MediaStrategy $strategy): MediaResource
+    public function storeWith(UploadMediaStrategy $strategy): MediaResource
     {
         return $strategy->storeExternalFile($this);
     }

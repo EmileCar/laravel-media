@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Facade;
  * This facade provides all media functionality through a clean, simple interface.
  * External projects should ONLY use this facade and not access internal classes directly.
  *
- * @method static MediaResource store(array $data) Store a new media file
+ * @method static MediaResource store(StoreMediaData $data) Store a new media file
  * @method static MediaResource getById(int $id) Get media by ID
  * @method static \Illuminate\Pagination\LengthAwarePaginator search(string $query, string|null $type = null, int $limit = 20, int $offset = 0) Search media
  * @method static \Symfony\Component\HttpFoundation\BinaryFileResponse serve(string $path) Serve media file

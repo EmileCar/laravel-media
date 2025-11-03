@@ -35,8 +35,6 @@ class CaroneMediaServiceProvider extends ServiceProvider
             'media'
         );
 
-        $this->app->singleton(MediaProcessor::class);
-
         $this->app->bind(StoreMediaServiceInterface::class, StoreMediaService::class);
         $this->app->bind(GetMediaServiceInterface::class, GetMediaService::class);
         $this->app->bind(DeleteMediaServiceInterface::class, DeleteMediaService::class);

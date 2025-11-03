@@ -1,22 +1,22 @@
 <?php
 
-namespace Carone\Media\Processing\Plugins;
+namespace Carone\Media\UploadStrategies;
 
+use Carone\Media\UploadStrategies\UploadMediaStrategy;
 use Carone\Media\Utilities\ImageProcessor;
-use Carone\Media\Utilities\MediaStorageHelper;
 use Carone\Media\ValueObjects\MediaFileReference;
+use Carone\Media\ValueObjects\StoreMediaData;
 use Illuminate\Http\UploadedFile;
 use Intervention\Image\Laravel\Facades\Image;
 
-/**
- * Image-specific processing plugin
- */
-class ImageProcessingPlugin
+class UploadImageStrategy extends UploadMediaStrategy
 {
-    /**
-     * Process an image file
-     */
-    public function process(UploadedFile $file): ?string
+    public function __construct(StoreMediaData $data)
+    {
+        $this->data = $data;
+    }
+
+    protected function processFile(UploadedFile $file): ?string
     {
         $config = config('media.processing.image', []);
 
@@ -26,15 +26,13 @@ class ImageProcessingPlugin
 
         $image = Image::read($file);
 
-        if ($config['resize']['enabled'] ?? false) {
+        if ($config['resize']['enabled']) {
             $image = ImageProcessor::applyResize($image, $config['resize']);
         }
-
-        if ($config['crop']['enabled'] ?? false) {
+        if ($config['crop']['enabled']) {
             $image = ImageProcessor::applyCrop($image, $config['crop']);
         }
-
-        if (($config['watermark']['enabled'] ?? false) && ($config['watermark']['path'] ?? null)) {
+        if ($config['watermark']['enabled'] && $config['watermark']['path']) {
             $image = ImageProcessor::applyWatermark($image, $config['watermark']);
         }
 
@@ -51,7 +49,7 @@ class ImageProcessingPlugin
     /**
      * Generate thumbnail for the image
      */
-    public function generateThumbnail(MediaFileReference $fileReference): ?MediaFileReference
+    protected function generateThumbnail(MediaFileReference $fileReference): ?MediaFileReference
     {
         $thumbnailConfig = config('media.processing.thumbnail', []);
 
@@ -60,18 +58,14 @@ class ImageProcessingPlugin
         }
 
         $thumbnailFileReference = new MediaFileReference(
-            $fileReference->filename . '_thumb',
-            $thumbnailConfig['convert_format'] ?? 'jpg',
+            $fileReference->filename,
+            $thumbnailConfig['convert_format'],
             $fileReference->disk,
             $fileReference->directory
         );
 
         try {
-            ImageProcessor::generateThumbnail(
-                MediaStorageHelper::getPhysicalPath($fileReference),
-                $thumbnailFileReference,
-                $thumbnailConfig
-            );
+            ImageProcessor::generateThumbnail($fileReference->getStoragePath(), $thumbnailFileReference, $thumbnailConfig);
             return $thumbnailFileReference;
         } catch (\Exception $e) {
             // Log error but don't fail the main upload

@@ -2,8 +2,6 @@
 
 namespace Carone\Media\Utilities;
 
-use Carbon\Carbon;
-use Carbon\CarbonInterface;
 use Carone\Media\Traits\BuildsCommonMediaData;
 use Carone\Media\ValueObjects\MediaType;
 use Carone\Media\ValueObjects\StoreExternalMediaData;

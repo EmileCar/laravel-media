@@ -58,7 +58,7 @@ return [
         'storage_path' => 'media/thumbnails/{path}',
 
         // Number of minutes to cache thumbnails when served via a controller, if null, do not cache
-        'cache_minutes' => null,
+        'cache_minutes' => 60,
     ],
 
     /*

@@ -28,7 +28,7 @@ class MediaManager
     /**
      * Store a file
      */
-    public function storeFile(StoreMediaData $data): MediaResource
+    public function store(StoreMediaData $data): MediaResource
     {
         return $this->storeService->store($data);
     }

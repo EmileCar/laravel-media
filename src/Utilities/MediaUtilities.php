@@ -2,7 +2,9 @@
 
 namespace Carone\Media\Utilities;
 
+use Carone\Media\ValueObjects\MediaFileReference;
 use Carone\Media\ValueObjects\MediaType;
+use Carone\Media\ValueObjects\StoreLocalMediaData;
 use Intervention\Image\Drivers\SpecializableEncoder;
 
 class MediaUtilities
@@ -92,5 +94,38 @@ class MediaUtilities
             'webp' => new \Intervention\Image\Encoders\WebpEncoder($quality),
             default => new \Intervention\Image\Encoders\JpegEncoder($quality),
         };
+    }
+
+    /**
+     * Create a unique file reference for the given local media data.
+     * @param \Carone\Media\ValueObjects\StoreLocalMediaData $data
+     * @throws \InvalidArgumentException if a user-specified filename already exists.
+     * @return MediaFileReference
+     */
+    public static function createUniqueFileReference(StoreLocalMediaData $data): MediaFileReference
+    {
+        $storageBase = MediaStorageHelper::resolveStoragePath($data->directory);
+        $diskName = $data->disk ?? config('media.disk', 'public');
+
+        $extension = strtolower($data->file->getClientOriginalExtension());
+        $base = $data->fileName ?? $data->name ?? pathinfo($data->file->getClientOriginalName(), PATHINFO_FILENAME);
+        $base = MediaStorageHelper::sanitizeFilename($base);
+
+        // User explicitly set a filename —> must fail if it exists
+        // Else, auto-generate a unique filename
+        if ($data->fileName) {
+            $fullPath = "{$storageBase}/{$base}.{$extension}";
+            if (MediaStorageHelper::doesFileExist($diskName, $fullPath)) {
+                throw new \InvalidArgumentException("File '{$base}.{$extension}' already exists in '{$storageBase}'.");
+            }
+            $finalName = $base;
+        } else {
+            $finalName = pathinfo(
+                MediaStorageHelper::generateUniqueFilename($diskName, $storageBase, $base, $extension),
+                PATHINFO_FILENAME
+            );
+        }
+
+        return new MediaFileReference($finalName, $extension, $diskName, $data->directory);
     }
 }

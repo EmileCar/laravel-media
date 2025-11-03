@@ -2,7 +2,7 @@
 
 namespace Carone\Media\ValueObjects;
 
-use Carone\Media\Strategies\MediaStrategy;
+use Carone\Media\UploadStrategies\UploadMediaStrategy;
 use Carbon\CarbonInterface;
 use Carone\Media\Models\MediaResource;
 use Carone\Media\Utilities\MediaUtilities;
@@ -44,5 +44,5 @@ abstract class StoreMediaData
     abstract public function rules(): array;
 
     /** Polymorphic storage */
-    abstract public function storeWith(MediaStrategy $strategy): MediaResource;
+    abstract public function storeWith(UploadMediaStrategy $strategy): MediaResource;
 }
