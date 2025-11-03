@@ -12,7 +12,7 @@ class MediaUtilities
      */
     public static function getEnabled(): array
     {
-        $enabledTypes = config('media.enabled_types', ['image', 'video', 'audio', 'document']);
+        $enabledTypes = config('media.enabled_types', []);
 
         return array_filter(MediaType::cases(), function($case) use ($enabledTypes) {
             return in_array($case->value, $enabledTypes);

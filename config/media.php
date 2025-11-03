@@ -25,14 +25,41 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Thumbnail Directory Structure
+    | Cache Duration
     |--------------------------------------------------------------------------
-    | Configure where uploaded media should be placed on the disk.
-    | Replace {path} with the appropriate path segment.
-    | When storing a file with path 'images/2024/06' for example, the final storage path will be 'media/images/2024/06'.
+    | Number of minutes to cache media files when served via a controller.
+    | If null, do not cache.
     |--------------------------------------------------------------------------
     */
-    'thumbnail_storage_path' => 'media/thumbnails/{path}',
+    'cache_minutes' => 60,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Thumbnail Configuration
+    |--------------------------------------------------------------------------
+    | Configure how thumbnails are generated and stored.
+    | You can enable or disable them, define a separate disk,
+    |--------------------------------------------------------------------------
+    */
+    'thumbnails' => [
+
+        // Enable or disable thumbnail generation
+        'enabled' => env('MEDIA_THUMBNAILS_ENABLED', true),
+
+        // If enabled, specify if a thumbnail needs to always be generated when media is uploaded
+        'generate_always' => false,
+
+        // The filesystem disk where thumbnails will be stored
+        // If not set, it will use the disk that their media itself uses
+        'force_disk' => env('MEDIA_STORAGE_DISK', null),
+
+        // Path structure on the disk
+        // {path} will be replaced with the media’s subpath
+        'storage_path' => 'media/thumbnails/{path}',
+
+        // Number of minutes to cache thumbnails when served via a controller, if null, do not cache
+        'cache_minutes' => null,
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -56,15 +83,6 @@ return [
         'audio' => ['mimes:mp3,wav', 'max:10240'],
         'document' => ['mimes:pdf,doc,docx,xls,xlsx', 'max:10240'],
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Thumbnail Generation for images
-    |--------------------------------------------------------------------------
-    | Default setting to enable or disable thumbnail generation for images@.
-    |---------------------------------------------------------------------------
-    */
-    'enable_thumbnails' => true,
 
     /*
     |--------------------------------------------------------------------------

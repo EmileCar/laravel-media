@@ -2,14 +2,14 @@
 
 namespace Carone\Media;
 
+use Carone\Media\Contracts\DeleteMediaServiceInterface;
+use Carone\Media\Contracts\GetMediaServiceInterface;
+use Carone\Media\Contracts\StoreMediaServiceInterface;
 use Carone\Media\Services\DeleteMediaService;
 use Carone\Media\Services\GetMediaService;
 use Carone\Media\Services\StoreMediaService;
-use Carone\Media\Contracts\StoreMediaServiceInterface;
-use Carone\Media\Contracts\GetMediaServiceInterface;
-use Carone\Media\Contracts\DeleteMediaServiceInterface;
+use Carone\Media\Processing\MediaProcessor;
 use Carone\Media\Utilities\MediaModel;
-use Carone\Media\ValueObjects\MediaType;
 use Carone\Media\MediaManager;
 use Illuminate\Support\ServiceProvider;
 
@@ -35,13 +35,13 @@ class CaroneMediaServiceProvider extends ServiceProvider
             'media'
         );
 
-        foreach (MediaType::cases() as $mediaType) {
-            $this->app->singleton($mediaType->getStrategyClass());
-        }
+        $this->app->singleton(MediaProcessor::class);
 
-        $this->app->singleton(StoreMediaServiceInterface::class, StoreMediaService::class);
-        $this->app->singleton(GetMediaServiceInterface::class, GetMediaService::class);
-        $this->app->singleton(DeleteMediaServiceInterface::class, DeleteMediaService::class);
+        $this->app->bind(StoreMediaServiceInterface::class, StoreMediaService::class);
+        $this->app->bind(GetMediaServiceInterface::class, GetMediaService::class);
+        $this->app->bind(DeleteMediaServiceInterface::class, DeleteMediaService::class);
+
+        $this->app->singleton(MediaManager::class);
         $this->app->singleton('carone.media', MediaManager::class);
     }
 

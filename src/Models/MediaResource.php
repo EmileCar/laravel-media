@@ -11,7 +11,7 @@ class MediaResource extends Model
 
     protected $fillable = [
         'type', 'source', 'path', 'disk', 'group', 'url',
-        'display_name', 'description', 'date', 'meta'
+        'display_name', 'description', 'date', 'meta', 'thumbnail_file_name'
     ];
 
     protected $casts = [
@@ -26,5 +26,15 @@ class MediaResource extends Model
         }
 
         return MediaFileReference::fromPath($this->path, $this->disk);
+    }
+
+    public function loadThumbnailFileReference(): ?MediaFileReference
+    {
+        $fileReference = $this->loadFileReference();
+        if (empty($fileReference) || empty($this->thumbnail_file_name)) {
+            return null;
+        }
+
+        return MediaFileReference::fromPath($this->thumbnail_file_name, $this->disk);
     }
 }

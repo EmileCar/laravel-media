@@ -15,7 +15,7 @@ interface GetMediaServiceInterface
      * @param int $id
      * @return MediaResource
      */
-    public function getById(int $id): MediaResource;
+    public function getResourceById(int $id): MediaResource;
 
     /**
      * Get available media types

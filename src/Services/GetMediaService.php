@@ -2,23 +2,22 @@
 
 namespace Carone\Media\Services;
 
-use Carone\Media\Services\MediaService;
 use Carone\Common\Search\AppliesSearchCriteria;
 use Carone\Common\Search\SearchCriteria;
 use Carone\Common\Search\SearchFilter;
 use Carone\Media\Contracts\GetMediaServiceInterface;
-use Carone\Media\Utilities\MediaUtilities;
-use Carone\Media\Utilities\MediaModel;
 use Carone\Media\Models\MediaResource;
+use Carone\Media\Services\MediaService;
+use Carone\Media\Utilities\MediaModel;
+use Carone\Media\Utilities\MediaStorageHelper;
+use Carone\Media\Utilities\MediaUtilities;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class GetMediaService extends MediaService implements GetMediaServiceInterface, AppliesSearchCriteria
 {
-    public function __construct() { }
-
-    public function getById(int $id): MediaResource
+    public function getResourceById(int $id): MediaResource
     {
         return MediaModel::findOrFail($id);
     }
@@ -34,20 +33,52 @@ class GetMediaService extends MediaService implements GetMediaServiceInterface, 
             ->where('path', $path)
             ->firstOrFail();
 
-        $strategy = $this->getStrategy($media->type);
-        return $strategy->getMediaFile($media);
+        $fileReference = $media->loadFileReference();
+        if (!$fileReference || !MediaStorageHelper::doesFileExist($fileReference->disk, $fileReference->getPath())) {
+            abort(404, 'Media file not found');
+        }
+
+        $path = MediaStorageHelper::getPhysicalPath($fileReference);
+        $mimeType = MediaUtilities::getMimeType($fileReference->extension, 'image/jpg');
+
+        $cacheMinutes = config('media.cache_minutes');
+
+        return response()->file($path, [
+            'Content-Type' => $mimeType,
+            'Cache-Control' => "public, max-age=" . ($cacheMinutes * 60),
+        ]);
+    }
+
+    public function serveThumbnail(string $path): BinaryFileResponse
+    {
+        $media = MediaModel::where('source', 'local')
+            ->where('path', $path)
+            ->firstOrFail();
+
+        $fileReference = $media->loadThumbnailFileReference();
+        if (!$fileReference || !MediaStorageHelper::doesFileExist($fileReference->disk, $fileReference->getPath())) {
+            abort(404, 'Media file not found');
+        }
+
+        $path = MediaStorageHelper::getPhysicalPath($fileReference);
+        $mimeType = MediaUtilities::getMimeType($fileReference->extension, 'image/jpg');
+
+        $cacheMinutes = config('media.cache_minutes');
+
+        return response()->file($path, [
+            'Content-Type' => $mimeType,
+            'Cache-Control' => "public, max-age=" . ($cacheMinutes * 60),
+        ]);
     }
 
     public function search(SearchCriteria $criteria, ?int $offset = null, ?int $limit = null): LengthAwarePaginator
     {
         $query = $this->applySearchCriteria($criteria);
 
-        $paginator = $query->paginate(
-            perPage: $limit,
-            page: $offset / $limit + 1
+        return $query->paginate(
+            perPage: $limit ?? 20,
+            page: ($offset ?? 0) / ($limit ?? 20) + 1
         );
-
-        return $paginator;
     }
 
     public function applySearchCriteria(SearchCriteria $searchCriteria): Builder
@@ -59,7 +90,7 @@ class GetMediaService extends MediaService implements GetMediaServiceInterface, 
 
             $query->where(function (Builder $q) use ($terms) {
                 foreach ($terms as $term) {
-                    $q->where('name', 'like', "%{$term}%")
+                    $q->where('display_name', 'like', "%{$term}%")
                       ->orWhere('description', 'like', "%{$term}%");
                 }
             });

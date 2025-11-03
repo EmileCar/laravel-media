@@ -11,13 +11,14 @@ return new class extends Migration {
             $table->id();
             $table->enum('type', ['image', 'video', 'audio', 'document']);
             $table->enum('source', ['local', 'external'])->default('local');
-            $table->string('path')->nullable();
+            $table->string('path')->nullable()->unique();
             $table->string('disk')->nullable();
-            $table->string('url')->nullable();
+            $table->string('url')->nullable()->unique();
             $table->string('display_name')->nullable();
             $table->text('description')->nullable();
             $table->date('date')->nullable();
             $table->json('meta')->nullable();
+            $table->string('thumbnail_file_name')->nullable();
             $table->timestamps();
         });
     }
