@@ -3,10 +3,13 @@
 namespace Carone\Media\Models;
 
 use Carone\Media\ValueObjects\MediaFileReference;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class MediaResource extends Model
 {
+    use HasFactory;
+
     protected $table = 'media_resources';
 
     protected $fillable = [
@@ -36,5 +39,13 @@ class MediaResource extends Model
         }
 
         return MediaFileReference::fromPath($this->thumbnail_file_name, $this->disk);
+    }
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory()
+    {
+        return \Database\Factories\MediaResourceFactory::new();
     }
 }
