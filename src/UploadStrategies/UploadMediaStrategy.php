@@ -199,7 +199,7 @@ class UploadMediaStrategy
     public function getMediaFile(MediaResource $media): BinaryFileResponse
     {
         $fileReference = $media->loadFileReference();
-        if (!MediaStorageHelper::doesFileExist($fileReference->disk, $fileReference->getPath())) {
+        if (!MediaStorageHelper::doesFileExist($fileReference->disk, $fileReference->getStoragePath())) {
             abort(404, 'Media file not found');
         }
 

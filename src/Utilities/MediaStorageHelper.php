@@ -16,12 +16,12 @@ class MediaStorageHelper
 
     public static function storeFile(MediaFileReference $fileReference, string $data): void
     {
-        Storage::disk($fileReference->disk)->put($fileReference->directory . DIRECTORY_SEPARATOR . $fileReference->getFileNameWithExtension(), $data);
+        Storage::disk($fileReference->disk)->put($fileReference->getStoragePath(), $data);
     }
 
     public static function deleteFile(MediaFileReference $fileReference): void
     {
-        Storage::disk($fileReference->disk)->delete($fileReference->getPath());
+        Storage::disk($fileReference->disk)->delete($fileReference->getStoragePath());
     }
 
     /**

@@ -33,7 +33,7 @@ class GetMediaService implements GetMediaServiceInterface, AppliesSearchCriteria
             ->firstOrFail();
 
         $fileReference = $media->loadFileReference();
-        if (!$fileReference || !MediaStorageHelper::doesFileExist($fileReference->disk, $fileReference->getPath())) {
+        if (!$fileReference || !MediaStorageHelper::doesFileExist($fileReference->disk, $fileReference->getStoragePath())) {
             abort(404, 'Media file not found');
         }
 
@@ -55,8 +55,8 @@ class GetMediaService implements GetMediaServiceInterface, AppliesSearchCriteria
             ->firstOrFail();
 
         $fileReference = $media->loadThumbnailFileReference();
-        if (!$fileReference || !MediaStorageHelper::doesFileExist($fileReference->disk, $fileReference->getPath())) {
-            abort(404, 'Media file not found');
+        if (!$fileReference || !MediaStorageHelper::doesFileExist($fileReference->disk, $fileReference->getStoragePath())) {
+            abort(404, 'Thumbnail not found');
         }
 
         $path = MediaStorageHelper::getPhysicalPath($fileReference);

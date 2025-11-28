@@ -4,6 +4,7 @@ namespace Carone\Media\UploadStrategies;
 
 use Carone\Media\UploadStrategies\UploadMediaStrategy;
 use Carone\Media\Utilities\ImageProcessor;
+use Carone\Media\Utilities\MediaStorageHelper;
 use Carone\Media\ValueObjects\MediaFileReference;
 use Carone\Media\ValueObjects\StoreMediaData;
 use Illuminate\Http\UploadedFile;
@@ -66,7 +67,8 @@ class UploadImageStrategy extends UploadMediaStrategy
         );
 
         try {
-            ImageProcessor::generateThumbnail($fileReference->getStoragePath(), $thumbnailFileReference, $thumbnailConfig);
+            $physicalPath = MediaStorageHelper::getPhysicalPath($fileReference);
+            ImageProcessor::generateThumbnail($physicalPath, $thumbnailFileReference, $thumbnailConfig);
             return $thumbnailFileReference;
         } catch (\Exception $e) {
             // Log error but don't fail the main upload

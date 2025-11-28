@@ -183,8 +183,8 @@ class UploadMediaStrategyTest extends TestCase
 
         $strategy = new UploadMediaStrategy($data);
 
-        // Create a mock file reference
-        $fileReference = $this->createMock(\Carone\Media\ValueObjects\MediaFileReference::class);
+        // Create a real file reference
+        $fileReference = new \Carone\Media\ValueObjects\MediaFileReference('test', 'jpg', 'public', 'test');
 
         // Access protected method using reflection
         $reflection = new \ReflectionClass($strategy);
@@ -219,7 +219,8 @@ class UploadMediaStrategyTest extends TestCase
 
         $this->assertInstanceOf(BinaryFileResponse::class, $response);
         $this->assertStringContainsString('video/mp4', $response->headers->get('Content-Type'));
-        $this->assertStringContainsString('public, max-age=31536000', $response->headers->get('Cache-Control'));
+        $this->assertStringContainsString('public', $response->headers->get('Cache-Control'));
+        $this->assertStringContainsString('max-age=31536000', $response->headers->get('Cache-Control'));
     }
 
     public function test_getMediaFile_throws_404_when_file_not_found()

@@ -6,14 +6,10 @@ use Carone\Common\Search\SearchCriteria;
 use Carone\Common\Search\SearchTerm;
 use Carone\Media\Models\MediaResource;
 use Carone\Media\Services\GetMediaService;
-use Carone\Media\Utilities\MediaModel;
-use Carone\Media\Utilities\MediaStorageHelper;
-use Carone\Media\Utilities\MediaUtilities;
-use Carone\Media\ValueObjects\MediaFileReference;
 use Carone\Media\Tests\TestCase;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Storage;
 use Mockery;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -64,34 +60,17 @@ class GetMediaServiceTest extends TestCase
 
     public function test_serveMedia_returns_binary_file_response()
     {
+        // Create a real test file
+        $testContent = 'test image content';
+        Storage::disk('public')->put('media/test/image.jpg', $testContent);
+
         // Create media resource
         $media = MediaResource::factory()->create([
             'source' => 'local',
             'path' => 'test/image.jpg',
+            'disk' => 'public',
             'meta' => ['original_name' => 'image.jpg']
         ]);
-
-        // Mock file reference and storage helper
-        $fileReference = new MediaFileReference('image', 'jpg', 'public', 'test');
-
-        $this->mock(MediaStorageHelper::class, function ($mock) use ($fileReference) {
-            $mock->shouldReceive('doesFileExist')
-                 ->with('public', 'test/image.jpg')
-                 ->andReturn(true);
-            $mock->shouldReceive('getPhysicalPath')
-                 ->with($fileReference)
-                 ->andReturn('/path/to/image.jpg');
-        });
-
-        $this->mock(MediaUtilities::class, function ($mock) {
-            $mock->shouldReceive('getMimeType')
-                 ->with('jpg', 'image/jpg')
-                 ->andReturn('image/jpeg');
-        });
-
-        // Mock the loadFileReference method
-        $media->shouldReceive('loadFileReference')
-              ->andReturn($fileReference);
 
         config(['media.cache_minutes' => 60]);
 
@@ -102,21 +81,12 @@ class GetMediaServiceTest extends TestCase
 
     public function test_serveMedia_aborts_404_when_file_not_exists()
     {
-        // Create media resource
+        // Create media resource without creating the actual file
         $media = MediaResource::factory()->create([
             'source' => 'local',
-            'path' => 'test/missing.jpg'
+            'path' => 'test/missing.jpg',
+            'disk' => 'public',
         ]);
-
-        $fileReference = new MediaFileReference('missing', 'jpg', 'public', 'test');
-
-        $this->mock(MediaStorageHelper::class, function ($mock) {
-            $mock->shouldReceive('doesFileExist')
-                 ->andReturn(false);
-        });
-
-        $media->shouldReceive('loadFileReference')
-              ->andReturn($fileReference);
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class);
 
@@ -125,30 +95,18 @@ class GetMediaServiceTest extends TestCase
 
     public function test_serveThumbnail_returns_binary_file_response()
     {
-        // Create media resource
+        // Create a real test thumbnail file
+        $testContent = 'test thumbnail content';
+        Storage::disk('public')->put('media/test/image_thumb.jpg', $testContent);
+
+        // Create media resource with thumbnail
         $media = MediaResource::factory()->create([
             'source' => 'local',
-            'path' => 'test/image.jpg'
+            'path' => 'test/image.jpg',
+            'disk' => 'public',
+            'thumbnail_path' => 'test/image_thumb.jpg',
+            'thumbnail_disk' => 'public',
         ]);
-
-        $thumbnailReference = new MediaFileReference('image_thumb', 'jpg', 'public', 'test/thumbnails');
-
-        $this->mock(MediaStorageHelper::class, function ($mock) use ($thumbnailReference) {
-            $mock->shouldReceive('doesFileExist')
-                 ->with('public', 'test/thumbnails/image_thumb.jpg')
-                 ->andReturn(true);
-            $mock->shouldReceive('getPhysicalPath')
-                 ->with($thumbnailReference)
-                 ->andReturn('/path/to/thumb.jpg');
-        });
-
-        $this->mock(MediaUtilities::class, function ($mock) {
-            $mock->shouldReceive('getMimeType')
-                 ->andReturn('image/jpeg');
-        });
-
-        $media->shouldReceive('loadThumbnailFileReference')
-              ->andReturn($thumbnailReference);
 
         $result = $this->service->serveThumbnail('test/image.jpg');
 
