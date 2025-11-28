@@ -74,7 +74,7 @@ class DeleteMediaServiceTest extends TestCase
         $this->assertInstanceOf(BulkOperationResult::class, $result);
 
         // Verify all were processed (some may fail due to file operations)
-        $totalProcessed = $result->successful + $result->failed;
+        $totalProcessed = $result->getTotalCount();
         $this->assertEquals(3, $totalProcessed);
     }
 
@@ -87,7 +87,7 @@ class DeleteMediaServiceTest extends TestCase
         $result = $this->service->deleteMultiple($ids);
 
         $this->assertInstanceOf(BulkOperationResult::class, $result);
-        $this->assertGreaterThan(0, $result->failed); // At least one failure
+        $this->assertGreaterThan(0, $result->getFailedCount()); // At least one failure
     }
 
     public function test_deleteByType_throws_exception_for_disabled_type()
@@ -128,8 +128,8 @@ class DeleteMediaServiceTest extends TestCase
         $result = $this->service->deleteByType(MediaType::AUDIO);
 
         $this->assertInstanceOf(BulkOperationResult::class, $result);
-        $this->assertEquals(0, $result->successful);
-        $this->assertEquals(0, $result->failed);
+        $this->assertEquals(0, $result->getSucceededCount());
+        $this->assertEquals(0, $result->getFailedCount());
     }
 
     public function test_delete_handles_external_media()

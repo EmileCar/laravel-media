@@ -7,6 +7,7 @@ use Carone\Media\Utilities\MediaModel;
 use Carone\Media\Utilities\MediaStorageHelper;
 use Carone\Media\Utilities\MediaUtilities;
 use Carone\Media\ValueObjects\MediaFileReference;
+use Carone\Media\ValueObjects\MediaType;
 use Carone\Media\ValueObjects\StoreExternalMediaData;
 use Carone\Media\ValueObjects\StoreLocalMediaData;
 use Carone\Media\ValueObjects\StoreMediaData;
@@ -48,7 +49,7 @@ class UploadMediaStrategy
         }
 
         // Determine if we should auto-generate thumbnail
-        $shouldGenerateThumbnail = $data->generateThumbnail 
+        $shouldGenerateThumbnail = $data->generateThumbnail
             || (config('media.thumbnails.auto_generate_for_images', false) && $data->type === MediaType::IMAGE);
 
         $thumbnailData = $this->handleThumbnail($data, $fileReference, $shouldGenerateThumbnail);
@@ -163,10 +164,10 @@ class UploadMediaStrategy
             $directory = 'external-thumbnails';
             $filename = uniqid('thumb_', true);
             $extension = $data->thumbnailFile->getClientOriginalExtension();
-            
+
             $thumbnailRef = new MediaFileReference($filename, $extension, $disk, $directory);
             MediaStorageHelper::storeFile($thumbnailRef, file_get_contents($data->thumbnailFile->getRealPath()));
-            
+
             $result['path'] = $thumbnailRef->getPath();
             $result['disk'] = $thumbnailRef->disk;
         }
