@@ -7,7 +7,7 @@ return [
     | Default Filesystem Disk
     |--------------------------------------------------------------------------
     | Here you may specify the default filesystem disk that should be used
-    | by the media library.
+    | by the media library. Can be overridden per upload via the builder.
     |---------------------------------------------------------------------------
     */
     'disk' => env('MEDIA_STORAGE_DISK', 'public'),
@@ -18,7 +18,9 @@ return [
     |--------------------------------------------------------------------------
     | Configure where uploaded media should be placed on the disk.
     | Replace {path} with the appropriate path segment.
-    | When storing a file with path 'images/2024/06' for example, the final storage path will be 'media/images/2024/06'.
+    | When storing a file with path 'images/2024/06' for example, the final
+    | storage path will be 'media/images/2024/06'.
+    | Can be overridden per upload via the builder.
     |--------------------------------------------------------------------------
     */
     'storage_path' => 'media/{path}',
@@ -37,27 +39,38 @@ return [
     |--------------------------------------------------------------------------
     | Thumbnail Configuration
     |--------------------------------------------------------------------------
-    | Configure how thumbnails are generated and stored.
-    | You can enable or disable them, define a separate disk,
+    | Configure how thumbnails are generated and stored for media files.
+    | Thumbnails are optional for ALL media types (image, video, audio, document).
+    | 
+    | For images: Thumbnails can be automatically generated from the source image.
+    | For other types or external media: Thumbnails can be provided as:
+    |   - An external URL (thumbnail_url) via builder
+    |   - A file upload (thumbnail_file) via builder
+    |   - A local file path (thumbnail_path) via builder
+    |
+    | Thumbnails DO NOT have their own MediaResource entity - they are stored
+    | as properties on the parent media resource.
     |--------------------------------------------------------------------------
     */
     'thumbnails' => [
 
-        // Enable or disable thumbnail generation
+        // Enable or disable thumbnail functionality globally
         'enabled' => env('MEDIA_THUMBNAILS_ENABLED', true),
 
-        // If enabled, specify if a thumbnail needs to always be generated when media is uploaded
-        'generate_always' => false,
+        // Auto-generate thumbnails for images when uploaded (only applies to local images)
+        // This can be overridden per upload via the builder's withThumbnail() method
+        'auto_generate_for_images' => env('MEDIA_AUTO_GENERATE_THUMBNAILS', false),
 
         // The filesystem disk where thumbnails will be stored
-        // If not set, it will use the disk that their media itself uses
-        'force_disk' => env('MEDIA_STORAGE_DISK', null),
+        // If null, will use the same disk as the media file itself
+        'disk' => env('MEDIA_THUMBNAILS_DISK', null),
 
-        // Path structure on the disk
-        // {path} will be replaced with the media’s subpath
+        // Path structure on the disk where thumbnails are stored
+        // {path} will be replaced with the media's directory path
         'storage_path' => 'media/thumbnails/{path}',
 
-        // Number of minutes to cache thumbnails when served via a controller, if null, do not cache
+        // Number of minutes to cache thumbnails when served via a controller
+        // Set to null to disable caching
         'cache_minutes' => 60,
     ],
 
@@ -68,20 +81,21 @@ return [
     | Here you may specify the file types that are not allowed for uploads.
     |---------------------------------------------------------------------------
     */
-    'banned_file_types' => ['exe', 'bat', 'cmd'],
+    'banned_file_types' => ['exe', 'bat', 'cmd', 'sh'],
 
     /*
     |--------------------------------------------------------------------------
     | Upload Validation Rules
     |--------------------------------------------------------------------------
-    | Define per-type uploadvalidation logic.
+    | Define per-type upload validation logic. These can be overridden
+    | per upload via the builder's withValidationRules() method.
     |---------------------------------------------------------------------------
     */
     'validation' => [
-        'image' => ['mimes:jpg,jpeg,png,gif', 'max:5120'],
-        'video' => ['mimes:mp4,mov,avi', 'max:20480'],
-        'audio' => ['mimes:mp3,wav', 'max:10240'],
-        'document' => ['mimes:pdf,doc,docx,xls,xlsx', 'max:10240'],
+        'image' => ['mimes:jpg,jpeg,png,gif,webp', 'max:5120'], // 5MB
+        'video' => ['mimes:mp4,mov,avi', 'max:20480'], // 20MB
+        'audio' => ['mimes:mp3,wav', 'max:10240'], // 10MB
+        'document' => ['mimes:pdf,doc,docx,xls,xlsx', 'max:10240'], // 10MB
     ],
 
     /*
@@ -107,14 +121,15 @@ return [
     |--------------------------------------------------------------------------
     | Image Processing Configuration
     |--------------------------------------------------------------------------
-    | Configure how images should be processed after upload
-    | Set 'enabled' to false to disable processing
+    | Configure how images should be processed after upload.
+    | Set 'enabled' to false to disable processing.
+    | All settings can be overridden per upload via the builder.
     |---------------------------------------------------------------------------
     */
     'processing' => [
         'image' => [
             'enabled' => true,
-            'convert_format' => 'jpg', // Convert all images to this format (jpg, png, webp, etc.) or null to keep original
+            'convert_format' => null, // Convert all images to this format (jpg, png, webp, etc.) or null to keep original
             'quality' => 85, // Quality for JPEG/WebP compression (0-100)
             'resize' => [
                 'enabled' => false,
@@ -133,15 +148,17 @@ return [
                 'enabled' => false,
                 'path' => null, // Path to watermark image
                 'position' => 'bottom-right', // Position of watermark
-                'opacity' => 80, // Opacity percentage
+                'opacity' => 80, // Opacity percentage (0-100)
                 'margin' => 10, // Margin from edge in pixels
             ],
             'optimize' => true, // Apply optimization
         ],
-        'thumbnail' => [ // Configuration for generating thumbnails
+        
+        // Configuration for generating thumbnails from images
+        'thumbnail' => [
             'convert_format' => 'jpg', // Convert all thumbnails to this format (jpg, png, webp, etc.) or null to keep original
-            'quality' => 80, // Quality for thumbnail compression
-            'resize' => [ // Resize settings for thumbnails (should always be enabled)
+            'quality' => 80, // Quality for thumbnail compression (0-100)
+            'resize' => [
                 'width' => 300,
                 'height' => 300,
                 'maintain_aspect_ratio' => true,

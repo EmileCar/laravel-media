@@ -21,11 +21,13 @@ class MediaResourceFactory extends Factory
             'description' => $this->faker->optional()->sentence(),
             'date' => $this->faker->date(),
             'meta' => [
-                'original_name' => $this->faker->fileName(),
+                'original_name' => $this->faker->word() . '.jpg',
                 'size' => $this->faker->numberBetween(1000, 1000000),
                 'mime_type' => $this->faker->mimeType(),
             ],
-            'thumbnail_file_name' => $this->faker->optional()->filePath(),
+            'thumbnail_path' => $this->faker->optional()->filePath(),
+            'thumbnail_url' => $this->faker->optional()->url(),
+            'thumbnail_disk' => $this->faker->optional()->randomElement(['public', 'local']),
         ];
     }
 

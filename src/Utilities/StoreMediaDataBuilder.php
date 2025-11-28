@@ -46,8 +46,6 @@ class StoreLocalMediaDataBuilder
 
     protected UploadedFile $file;
     protected ?string $fileName = null;
-    protected ?string $directory = null;
-    protected ?string $disk = null;
     protected bool $generateThumbnail = false;
 
     public function __construct(UploadedFile $file)
@@ -67,25 +65,8 @@ class StoreLocalMediaDataBuilder
     }
 
     /**
-     * Set the directory path
-     */
-    public function useDirectory(?string $directory): self
-    {
-        $this->directory = $directory;
-        return $this;
-    }
-
-    /**
-     * Set the disk name
-     */
-    public function useDisk(string $disk): self
-    {
-        $this->disk = $disk;
-        return $this;
-    }
-
-    /**
-     * Enable thumbnail generation (only for images)
+     * Enable thumbnail generation (for images, auto-generates from source)
+     * For other types, use withThumbnailUrl(), withThumbnailPath(), or withThumbnailFile()
      */
     public function withThumbnail(bool $generateThumbnail = true): self
     {
@@ -114,9 +95,14 @@ class StoreLocalMediaDataBuilder
             name: $this->name,
             description: $this->description,
             date: $this->date,
+            meta: $this->meta,
             directory: $this->directory,
             disk: $this->disk,
             generateThumbnail: $this->generateThumbnail,
+            thumbnailUrl: $this->thumbnailUrl,
+            thumbnailPath: $this->thumbnailPath,
+            thumbnailFile: $this->thumbnailFile,
+            processingConfig: $this->processingConfig,
         );
     }
 }
@@ -162,7 +148,7 @@ class StoreExternalMediaDataBuilder
     public function build(): StoreExternalMediaData
     {
         if (!$this->type) {
-            throw new \InvalidArgumentException('Media type must be set. Use type(), typeFromString(), or autoDetectType()');
+            throw new \InvalidArgumentException('Media type must be set. Use forType()');
         }
 
         return new StoreExternalMediaData(
@@ -170,7 +156,11 @@ class StoreExternalMediaDataBuilder
             url: $this->url,
             name: $this->name,
             description: $this->description,
-            date: $this->date
+            date: $this->date,
+            meta: $this->meta,
+            thumbnailUrl: $this->thumbnailUrl,
+            thumbnailPath: $this->thumbnailPath,
+            thumbnailFile: $this->thumbnailFile,
         );
     }
 }

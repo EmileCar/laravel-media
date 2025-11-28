@@ -36,7 +36,8 @@ class StoreMediaServiceTest extends TestCase
             fileName: 'test.txt',
             name: '', // Empty name should fail validation
             description: 'Test description',
-            date: now(),
+            date: now(), meta: [],
+            meta: [],
             directory: 'test',
             generateThumbnail: false
         );
@@ -58,7 +59,8 @@ class StoreMediaServiceTest extends TestCase
             fileName: 'test.jpg',
             name: 'Test Image',
             description: 'A test image',
-            date: now(),
+            date: now(), meta: [],
+            meta: [],
             directory: 'images',
             generateThumbnail: false
         );
@@ -79,7 +81,8 @@ class StoreMediaServiceTest extends TestCase
             url: 'https://example.com/image.jpg',
             name: 'External Image',
             description: 'An external image',
-            date: now()
+            date: now(), meta: [],
+            meta: []
         );
 
         $result = $this->service->store($data);
@@ -99,7 +102,8 @@ class StoreMediaServiceTest extends TestCase
             fileName: 'test.jpg',
             name: 'Test',
             description: '',
-            date: now(),
+            date: now(), meta: [],
+            meta: [],
             directory: 'test'
         );
 
@@ -117,7 +121,8 @@ class StoreMediaServiceTest extends TestCase
             fileName: 'test.mp4',
             name: 'Test',
             description: '',
-            date: now(),
+            date: now(), meta: [],
+            meta: [],
             directory: 'videos'
         );
 
@@ -181,7 +186,8 @@ class StoreMediaServiceTest extends TestCase
             fileName: 'test.jpg',
             name: 'Test Image',
             description: 'Test with thumbnail',
-            date: now(),
+            date: now(), meta: [],
+            meta: [],
             directory: 'images',
             generateThumbnail: true
         );

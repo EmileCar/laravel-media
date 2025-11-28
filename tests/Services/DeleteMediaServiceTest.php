@@ -92,21 +92,13 @@ class DeleteMediaServiceTest extends TestCase
 
     public function test_deleteByType_throws_exception_for_disabled_type()
     {
-        // Create a mock MediaType that returns false for isEnabled
-        $mockType = new class extends MediaType {
-            public function __construct() {
-                $this->value = 'disabled_type';
-            }
-
-            public function isEnabled(): bool {
-                return false;
-            }
-        };
+        // Temporarily disable images in config
+        config(['media.enabled_types' => ['video', 'audio', 'document']]);
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage("Media type 'disabled_type' is not enabled");
+        $this->expectExceptionMessage("Media type 'image' is not enabled");
 
-        $this->service->deleteByType($mockType);
+        $this->service->deleteByType(MediaType::IMAGE);
     }
 
     public function test_deleteByType_deletes_all_media_of_type()

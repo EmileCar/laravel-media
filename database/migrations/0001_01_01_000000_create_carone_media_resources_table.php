@@ -18,7 +18,11 @@ return new class extends Migration {
             $table->text('description')->nullable();
             $table->date('date')->nullable();
             $table->json('meta')->nullable();
-            $table->string('thumbnail_file_name')->nullable();
+
+            $table->string('thumbnail_path')->nullable();
+            $table->string('thumbnail_url')->nullable();
+            $table->string('thumbnail_disk')->nullable();
+            
             $table->timestamps();
         });
     }

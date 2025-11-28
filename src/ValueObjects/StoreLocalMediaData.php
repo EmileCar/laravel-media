@@ -17,11 +17,16 @@ final class StoreLocalMediaData extends StoreMediaData
         ?string $name,
         ?string $description,
         ?CarbonInterface $date,
-        public readonly ?string $directory,
+        array $meta = [],
+        public readonly ?string $directory = null,
         public readonly ?string $disk = null,
         public readonly bool $generateThumbnail = false,
+        public readonly ?string $thumbnailUrl = null,
+        public readonly ?string $thumbnailPath = null,
+        public readonly mixed $thumbnailFile = null,
+        public readonly ?array $processingConfig = null,
     ) {
-        parent::__construct($type, $name, $description, $date);
+        parent::__construct($type, $name, $description, $date, $meta);
     }
 
     public function toArray(): array
@@ -32,6 +37,10 @@ final class StoreLocalMediaData extends StoreMediaData
             'directory' => $this->directory,
             'disk' => $this->disk,
             'generate_thumbnail' => $this->generateThumbnail,
+            'thumbnail_url' => $this->thumbnailUrl,
+            'thumbnail_path' => $this->thumbnailPath,
+            'thumbnail_file' => $this->thumbnailFile,
+            'processing_config' => $this->processingConfig,
         ]);
     }
 
@@ -43,6 +52,9 @@ final class StoreLocalMediaData extends StoreMediaData
             'directory' => 'nullable|string|max:500',
             'disk' => 'nullable|string|max:255',
             'generate_thumbnail' => 'boolean',
+            'thumbnail_url' => 'nullable|url|max:1000',
+            'thumbnail_path' => 'nullable|string|max:500',
+            'thumbnail_file' => 'nullable|file',
         ]);
     }
 

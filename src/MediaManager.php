@@ -63,13 +63,11 @@ class MediaManager
     }
 
     /**
-     * Serve thumbnail (for backward compatibility - maps to serve for now)
+     * Serve thumbnail by media path
      */
     public function thumbnail(string $path): BinaryFileResponse
     {
-        // For thumbnails, we could modify the path to look for _thumb files
-        // For now, serve the original file
-        return $this->serve($path);
+        return $this->getService->serveThumbnail($path);
     }
 
     /**

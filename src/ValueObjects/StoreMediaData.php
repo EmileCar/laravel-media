@@ -15,6 +15,7 @@ abstract class StoreMediaData
         public readonly ?string $name,
         public readonly ?string $description,
         public readonly ?CarbonInterface $date,
+        public readonly array $meta = [],
     ) {}
 
     /** Base data for validation/serialization */
@@ -24,7 +25,8 @@ abstract class StoreMediaData
             'type' => $this->type->value,
             'name' => $this->name,
             'description' => $this->description,
-            'date' => $this->date->toDateString(),
+            'date' => $this->date?->toDateString(),
+            'meta' => $this->meta,
         ];
     }
 
@@ -37,6 +39,7 @@ abstract class StoreMediaData
             'name' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
             'date' => 'nullable|date',
+            'meta' => 'nullable|array',
         ];
     }
 

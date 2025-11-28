@@ -18,21 +18,22 @@ class UploadImageStrategy extends UploadMediaStrategy
 
     protected function processFile(UploadedFile $file): ?string
     {
-        $config = config('media.processing.image', []);
+        // Get config - use custom config if provided, otherwise use default
+        $config = $this->data->processingConfig ?? config('media.processing.image', []);
 
-        if (empty($config) || !$config['enabled']) {
+        if (empty($config) || !($config['enabled'] ?? true)) {
             return null;
         }
 
         $image = Image::read($file);
 
-        if ($config['resize']['enabled']) {
+        if (!empty($config['resize']['enabled'])) {
             $image = ImageProcessor::applyResize($image, $config['resize']);
         }
-        if ($config['crop']['enabled']) {
+        if (!empty($config['crop']['enabled'])) {
             $image = ImageProcessor::applyCrop($image, $config['crop']);
         }
-        if ($config['watermark']['enabled'] && $config['watermark']['path']) {
+        if (!empty($config['watermark']['enabled']) && !empty($config['watermark']['path'])) {
             $image = ImageProcessor::applyWatermark($image, $config['watermark']);
         }
 

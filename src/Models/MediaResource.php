@@ -13,8 +13,9 @@ class MediaResource extends Model
     protected $table = 'media_resources';
 
     protected $fillable = [
-        'type', 'source', 'path', 'disk', 'group', 'url',
-        'display_name', 'description', 'date', 'meta', 'thumbnail_file_name'
+        'type', 'source', 'path', 'disk', 'url',
+        'display_name', 'description', 'date', 'meta',
+        'thumbnail_path', 'thumbnail_url', 'thumbnail_disk'
     ];
 
     protected $casts = [
@@ -31,14 +32,44 @@ class MediaResource extends Model
         return MediaFileReference::fromPath($this->path, $this->disk);
     }
 
+    /**
+     * Load thumbnail file reference for local thumbnails
+     */
     public function loadThumbnailFileReference(): ?MediaFileReference
     {
-        $fileReference = $this->loadFileReference();
-        if (empty($fileReference) || empty($this->thumbnail_file_name)) {
+        if (empty($this->thumbnail_path)) {
             return null;
         }
 
-        return MediaFileReference::fromPath($this->thumbnail_file_name, $this->disk);
+        $disk = $this->thumbnail_disk ?? $this->disk;
+        return MediaFileReference::fromPath($this->thumbnail_path, $disk);
+    }
+
+    /**
+     * Get the thumbnail URL (either external or generated from local path)
+     */
+    public function getThumbnailUrl(): ?string
+    {
+        // External thumbnail URL takes priority
+        if (!empty($this->thumbnail_url)) {
+            return $this->thumbnail_url;
+        }
+
+        // Generate URL from local thumbnail path
+        if (!empty($this->thumbnail_path)) {
+            $disk = $this->thumbnail_disk ?? $this->disk;
+            return \Storage::disk($disk)->url($this->thumbnail_path);
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if this media has a thumbnail
+     */
+    public function hasThumbnail(): bool
+    {
+        return !empty($this->thumbnail_url) || !empty($this->thumbnail_path);
     }
 
     /**
