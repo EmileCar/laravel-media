@@ -2,234 +2,383 @@
 
 namespace Carone\Media\Tests\Utilities;
 
-use Carone\Media\Tests\TestCase;
 use Carone\Media\Utilities\ImageProcessor;
 use Carone\Media\ValueObjects\MediaFileReference;
+use Carone\Media\Tests\TestCase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Laravel\Facades\Image;
+use Intervention\Image\Interfaces\ImageInterface;
+use Mockery;
 
 class ImageProcessorTest extends TestCase
 {
-    protected string $testImagePath;
-
     protected function setUp(): void
     {
         parent::setUp();
-        $this->createRealTestImage();
+        Storage::fake('public');
     }
 
-    protected function createRealTestImage(): void
+    public function test_generateThumbnail_creates_thumbnail_file()
     {
-        $image = Image::create(400, 300)->fill('ff0000'); // Red 400x300 image
-        $this->testImagePath = storage_path('app/test-image.jpg');
-        $image->save($this->testImagePath);
-    }
+        // Create a fake image file
+        $originalFile = UploadedFile::fake()->image('test.jpg', 800, 600);
+        $imagePath = $originalFile->getRealPath();
 
-    /** @test */
-    public function it_skips_processing_when_disabled()
-    {
-        $config = ['enabled' => false];
-
-        $result = ImageProcessor::processImage($this->testImagePath, $config);
-
-        $this->assertEquals($this->testImagePath, $result);
-    }
-
-    /** @test */
-    public function it_applies_quality_compression()
-    {
-        $config = [
-            'enabled' => true,
-            'quality' => 50,
-            'convert_format' => null,
-            'resize' => ['enabled' => false],
-            'crop' => ['enabled' => false],
-            'watermark' => ['enabled' => false],
-        ];
-
-        $result = ImageProcessor::processImage($this->testImagePath, $config);
-
-        // Just check that the image was processed (doesn't throw an error)
-        // Quality difference might not be noticeable with simple test images
-        $this->assertFileExists($result);
-        $this->assertTrue(filesize($result) > 0);
-    }
-
-    /** @test */
-    public function it_converts_image_format()
-    {
-        $config = [
-            'enabled' => true,
-            'convert_format' => 'webp',
-            'quality' => 85,
-            'resize' => ['enabled' => false],
-            'crop' => ['enabled' => false],
-            'watermark' => ['enabled' => false],
-        ];
-
-        $result = ImageProcessor::processImage($this->testImagePath, $config);
-
-        $this->assertStringEndsWith('.webp', $result);
-        $this->assertTrue(file_exists($result));
-    }
-
-    /** @test */
-    public function it_resizes_image_maintaining_aspect_ratio()
-    {
-        $config = [
-            'enabled' => true,
-            'convert_format' => null,
-            'quality' => 85,
-            'resize' => [
-                'enabled' => true,
-                'width' => 200,
-                'height' => 150,
-                'maintain_aspect_ratio' => true,
-                'upsize' => false,
-            ],
-            'crop' => ['enabled' => false],
-            'watermark' => ['enabled' => false],
-        ];
-
-        $result = ImageProcessor::processImage($this->testImagePath, $config);
-
-        // Check that image was resized
-        $image = Image::read($result);
-        $this->assertLessThanOrEqual(200, $image->width());
-        $this->assertLessThanOrEqual(150, $image->height());
-    }
-
-    /** @test */
-    public function it_crops_image()
-    {
-        $config = [
-            'enabled' => true,
-            'convert_format' => null,
-            'quality' => 85,
-            'resize' => ['enabled' => false],
-            'crop' => [
-                'enabled' => true,
-                'width' => 100,
-                'height' => 100,
-                'position' => 'center',
-            ],
-            'watermark' => ['enabled' => false],
-        ];
-
-        $result = ImageProcessor::processImage($this->testImagePath, $config);
-
-        // Check that image was cropped to exact dimensions
-        $image = Image::read($result);
-        $this->assertEquals(100, $image->width());
-        $this->assertEquals(100, $image->height());
-    }
-
-    /** @test */
-    public function it_generates_thumbnail()
-    {
-        $thumbnailConfig = [
-            'convert_format' => 'jpg',
-            'quality' => 80,
-            'resize' => [
-                'width' => 150,
-                'height' => 150,
-                'maintain_aspect_ratio' => true,
-                'upsize' => false,
-            ],
-        ];
-
-        $thumbnailRef = new MediaFileReference(
+        // Create file reference for thumbnail
+        $thumbnailReference = new MediaFileReference(
             'test_thumb',
             'jpg',
-            'local',
+            'public',
             'thumbnails'
         );
 
-        $this->expectNotToPerformAssertions(); // This test just ensures no exceptions are thrown
-
-        ImageProcessor::generateThumbnail($this->testImagePath, $thumbnailRef, $thumbnailConfig);
-    }
-
-    /** @test */
-    public function it_handles_resize_without_upscaling()
-    {
-        // Create a small 50x50 image
-        $smallImage = Image::create(50, 50)->fill('00ff00');
-        $smallImagePath = storage_path('app/small-test-image.jpg');
-        $smallImage->save($smallImagePath);
-
         $config = [
-            'enabled' => true,
-            'convert_format' => null,
-            'quality' => 85,
+            'convert_format' => 'jpg',
+            'quality' => 80,
             'resize' => [
-                'enabled' => true,
-                'width' => 200,
-                'height' => 200,
+                'width' => 300,
+                'height' => 300,
                 'maintain_aspect_ratio' => true,
-                'upsize' => false, // Should not upsize
-            ],
-            'crop' => ['enabled' => false],
-            'watermark' => ['enabled' => false],
+                'upsize' => false,
+            ]
         ];
 
-        $result = ImageProcessor::processImage($smallImagePath, $config);
+        // Mock file storage to avoid actual file operations
+        Storage::shouldReceive('disk->put')->once();
 
-        // Image should remain 50x50 since upsize is false
-        $image = Image::read($result);
-        $this->assertEquals(50, $image->width());
-        $this->assertEquals(50, $image->height());
+        ImageProcessor::generateThumbnail($imagePath, $thumbnailReference, $config);
 
-        // Clean up
-        if (file_exists($smallImagePath)) {
-            unlink($smallImagePath);
+        // If we reach here without exception, the method worked
+        $this->assertTrue(true);
+    }
+
+    public function test_applyResize_with_aspect_ratio_maintained()
+    {
+        $originalFile = UploadedFile::fake()->image('test.jpg', 800, 600);
+        $image = Image::read($originalFile);
+
+        $config = [
+            'width' => 400,
+            'height' => 300,
+            'maintain_aspect_ratio' => true,
+            'upsize' => false,
+        ];
+
+        $resizedImage = ImageProcessor::applyResize($image, $config);
+
+        $this->assertInstanceOf(ImageInterface::class, $resizedImage);
+        // The image should maintain aspect ratio
+        $this->assertLessThanOrEqual(400, $resizedImage->width());
+        $this->assertLessThanOrEqual(300, $resizedImage->height());
+    }
+
+    public function test_applyResize_without_aspect_ratio()
+    {
+        $originalFile = UploadedFile::fake()->image('test.jpg', 800, 600);
+        $image = Image::read($originalFile);
+
+        $config = [
+            'width' => 400,
+            'height' => 300,
+            'maintain_aspect_ratio' => false,
+            'upsize' => false,
+        ];
+
+        $resizedImage = ImageProcessor::applyResize($image, $config);
+
+        $this->assertInstanceOf(ImageInterface::class, $resizedImage);
+        $this->assertEquals(400, $resizedImage->width());
+        $this->assertEquals(300, $resizedImage->height());
+    }
+
+    public function test_applyResize_prevents_upsizing_when_disabled()
+    {
+        $originalFile = UploadedFile::fake()->image('test.jpg', 200, 150);
+        $image = Image::read($originalFile);
+
+        $config = [
+            'width' => 400,
+            'height' => 300,
+            'maintain_aspect_ratio' => true,
+            'upsize' => false,
+        ];
+
+        $resizedImage = ImageProcessor::applyResize($image, $config);
+
+        // Should not upsize the image
+        $this->assertLessThanOrEqual(200, $resizedImage->width());
+        $this->assertLessThanOrEqual(150, $resizedImage->height());
+    }
+
+    public function test_applyResize_allows_upsizing_when_enabled()
+    {
+        $originalFile = UploadedFile::fake()->image('test.jpg', 200, 150);
+        $image = Image::read($originalFile);
+
+        $config = [
+            'width' => 400,
+            'height' => 300,
+            'maintain_aspect_ratio' => true,
+            'upsize' => true,
+        ];
+
+        $resizedImage = ImageProcessor::applyResize($image, $config);
+
+        // Should allow upsizing the image
+        $this->assertGreaterThan(200, $resizedImage->width());
+    }
+
+    public function test_applyCrop_crops_image_to_specified_dimensions()
+    {
+        $originalFile = UploadedFile::fake()->image('test.jpg', 800, 600);
+        $image = Image::read($originalFile);
+
+        $config = [
+            'width' => 400,
+            'height' => 300,
+            'position' => 'center',
+        ];
+
+        $croppedImage = ImageProcessor::applyCrop($image, $config);
+
+        $this->assertInstanceOf(ImageInterface::class, $croppedImage);
+        $this->assertEquals(400, $croppedImage->width());
+        $this->assertEquals(300, $croppedImage->height());
+    }
+
+    public function test_applyCrop_with_different_positions()
+    {
+        $originalFile = UploadedFile::fake()->image('test.jpg', 800, 600);
+        $image = Image::read($originalFile);
+
+        $positions = ['top-left', 'top', 'top-right', 'left', 'center', 'right', 'bottom-left', 'bottom', 'bottom-right'];
+
+        foreach ($positions as $position) {
+            $config = [
+                'width' => 400,
+                'height' => 300,
+                'position' => $position,
+            ];
+
+            $croppedImage = ImageProcessor::applyCrop($image, $config);
+
+            $this->assertInstanceOf(ImageInterface::class, $croppedImage);
+            $this->assertEquals(400, $croppedImage->width());
+            $this->assertEquals(300, $croppedImage->height());
         }
     }
 
-    /** @test */
-    public function it_applies_multiple_transformations()
+    public function test_applyWatermark_returns_original_when_file_not_exists()
     {
+        $originalFile = UploadedFile::fake()->image('test.jpg', 800, 600);
+        $image = Image::read($originalFile);
+
         $config = [
-            'enabled' => true,
-            'convert_format' => 'png',
-            'quality' => 90,
-            'resize' => [
-                'enabled' => true,
-                'width' => 300,
-                'height' => 200,
-                'maintain_aspect_ratio' => true,
-                'upsize' => false,
-            ],
-            'crop' => ['enabled' => false],
-            'watermark' => ['enabled' => false],
+            'path' => '/nonexistent/watermark.png',
+            'position' => 'bottom-right',
+            'opacity' => 80,
+            'margin' => 10,
         ];
 
-        $result = ImageProcessor::processImage($this->testImagePath, $config);
+        $result = ImageProcessor::applyWatermark($image, $config);
 
-        // Should be converted to PNG and resized
-        $this->assertStringEndsWith('.png', $result);
-        $this->assertTrue(file_exists($result));
+        // Should return the original image when watermark file doesn't exist
+        $this->assertInstanceOf(ImageInterface::class, $result);
+    }
 
-        $image = Image::read($result);
-        $this->assertLessThanOrEqual(300, $image->width());
-        $this->assertLessThanOrEqual(200, $image->height());
+    public function test_applyWatermark_applies_watermark_when_file_exists()
+    {
+        $originalFile = UploadedFile::fake()->image('test.jpg', 800, 600);
+        $watermarkFile = UploadedFile::fake()->image('watermark.png', 100, 50);
+
+        $image = Image::read($originalFile);
+
+        $config = [
+            'path' => $watermarkFile->getRealPath(),
+            'position' => 'bottom-right',
+            'opacity' => 80,
+            'margin' => 10,
+        ];
+
+        $result = ImageProcessor::applyWatermark($image, $config);
+
+        $this->assertInstanceOf(ImageInterface::class, $result);
+    }
+
+    public function test_encodeAndSave_supports_different_formats()
+    {
+        $originalFile = UploadedFile::fake()->image('test.jpg', 400, 300);
+        $image = Image::read($originalFile);
+
+        $formats = [
+            'jpg' => 85,
+            'jpeg' => 90,
+            'png' => 80,
+            'webp' => 75,
+        ];
+
+        foreach ($formats as $format => $quality) {
+            $tempPath = tempnam(sys_get_temp_dir(), 'test_') . '.' . $format;
+
+            ImageProcessor::encodeAndSave($image, $tempPath, $format, $quality);
+
+            $this->assertFileExists($tempPath);
+            $this->assertGreaterThan(0, filesize($tempPath));
+
+            // Clean up
+            unlink($tempPath);
+        }
+    }
+
+    public function test_encodeAndSave_defaults_to_jpeg_for_unknown_format()
+    {
+        $originalFile = UploadedFile::fake()->image('test.jpg', 400, 300);
+        $image = Image::read($originalFile);
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'test_') . '.unknown';
+
+        ImageProcessor::encodeAndSave($image, $tempPath, 'unknown', 85);
+
+        $this->assertFileExists($tempPath);
+        $this->assertGreaterThan(0, filesize($tempPath));
+
+        // Clean up
+        unlink($tempPath);
+    }
+
+    public function test_calculateWatermarkPosition_returns_correct_coordinates()
+    {
+        $originalFile = UploadedFile::fake()->image('test.jpg', 800, 600);
+        $watermarkFile = UploadedFile::fake()->image('watermark.png', 100, 50);
+
+        $image = Image::read($originalFile);
+        $watermark = Image::read($watermarkFile);
+
+        $positions = [
+            'top-left' => [10, 10],
+            'top' => [350, 10], // (800-100)/2, 10
+            'top-right' => [690, 10], // 800-100-10, 10
+            'left' => [10, 275], // 10, (600-50)/2
+            'center' => [350, 275], // (800-100)/2, (600-50)/2
+            'right' => [690, 275], // 800-100-10, (600-50)/2
+            'bottom-left' => [10, 540], // 10, 600-50-10
+            'bottom' => [350, 540], // (800-100)/2, 600-50-10
+            'bottom-right' => [690, 540], // 800-100-10, 600-50-10
+        ];
+
+        foreach ($positions as $position => $expectedCoords) {
+            $coords = $this->invokePrivateMethod(
+                ImageProcessor::class,
+                'calculateWatermarkPosition',
+                [$image, $watermark, $position, 10]
+            );
+
+            $this->assertEquals($expectedCoords, $coords, "Position: $position");
+        }
+    }
+
+    public function test_calculateWatermarkPosition_defaults_to_bottom_right()
+    {
+        $originalFile = UploadedFile::fake()->image('test.jpg', 800, 600);
+        $watermarkFile = UploadedFile::fake()->image('watermark.png', 100, 50);
+
+        $image = Image::read($originalFile);
+        $watermark = Image::read($watermarkFile);
+
+        $coords = $this->invokePrivateMethod(
+            ImageProcessor::class,
+            'calculateWatermarkPosition',
+            [$image, $watermark, 'invalid-position', 10]
+        );
+
+        // Should default to bottom-right: [800-100-10, 600-50-10] = [690, 540]
+        $this->assertEquals([690, 540], $coords);
+    }
+
+    public function test_generateThumbnail_handles_processing_error_gracefully()
+    {
+        // Test with an invalid image path
+        $invalidPath = '/nonexistent/path/to/image.jpg';
+
+        $thumbnailReference = new MediaFileReference(
+            'test_thumb',
+            'jpg',
+            'public',
+            'thumbnails'
+        );
+
+        $config = [
+            'convert_format' => 'jpg',
+            'quality' => 80,
+            'resize' => [
+                'width' => 300,
+                'height' => 300,
+                'maintain_aspect_ratio' => true,
+                'upsize' => false,
+            ]
+        ];
+
+        // This should throw an exception due to invalid path
+        $this->expectException(\Exception::class);
+
+        ImageProcessor::generateThumbnail($invalidPath, $thumbnailReference, $config);
+    }
+
+    public function test_generateThumbnail_cleans_up_temp_files()
+    {
+        $originalFile = UploadedFile::fake()->image('test.jpg', 800, 600);
+        $imagePath = $originalFile->getRealPath();
+
+        $thumbnailReference = new MediaFileReference(
+            'test_thumb',
+            'jpg',
+            'public',
+            'thumbnails'
+        );
+
+        $config = [
+            'convert_format' => 'jpg',
+            'quality' => 80,
+            'resize' => [
+                'width' => 300,
+                'height' => 300,
+                'maintain_aspect_ratio' => true,
+                'upsize' => false,
+            ]
+        ];
+
+        // Get temp dir before operation
+        $tempDir = sys_get_temp_dir();
+        $tempFilesBefore = glob($tempDir . '/thumbnail_*');
+
+        // Mock MediaStorageHelper to avoid actual storage
+        $this->mock(\Carone\Media\Utilities\MediaStorageHelper::class, function ($mock) {
+            $mock->shouldReceive('storeFile')->once();
+        });
+
+        ImageProcessor::generateThumbnail($imagePath, $thumbnailReference, $config);
+
+        // Check that temp files are cleaned up
+        $tempFilesAfter = glob($tempDir . '/thumbnail_*');
+        $this->assertEquals(count($tempFilesBefore), count($tempFilesAfter));
+    }
+
+    /**
+     * Helper method to invoke private/protected methods for testing
+     */
+    private function invokePrivateMethod($class, $methodName, array $parameters = [])
+    {
+        $reflection = new \ReflectionClass($class);
+        $method = $reflection->getMethod($methodName);
+        $method->setAccessible(true);
+
+        return $method->invokeArgs(null, $parameters);
     }
 
     protected function tearDown(): void
     {
-        // Clean up test files
-        if (file_exists($this->testImagePath)) {
-            unlink($this->testImagePath);
-        }
-
-        // Clean up any processed files in storage directory
-        $files = glob(storage_path('app/*.{jpg,png,webp}'), GLOB_BRACE);
-        foreach ($files as $file) {
-            if (file_exists($file)) {
-                unlink($file);
-            }
-        }
-
+        Mockery::close();
         parent::tearDown();
     }
 }

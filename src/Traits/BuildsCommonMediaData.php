@@ -12,6 +12,12 @@ trait BuildsCommonMediaData
     protected ?string $description = null;
     protected ?CarbonInterface $date = null;
     protected array $meta = [];
+    protected ?string $thumbnailUrl = null;
+    protected ?string $thumbnailPath = null;
+    protected mixed $thumbnailFile = null;
+    protected ?string $disk = null;
+    protected ?string $directory = null;
+    protected ?array $processingConfig = null;
 
     public function forType(MediaType|string $type): self
     {
@@ -50,6 +56,60 @@ trait BuildsCommonMediaData
     public function addMeta(string $key, mixed $value): self
     {
         $this->meta[$key] = $value;
+        return $this;
+    }
+
+    /**
+     * Set an external thumbnail URL
+     */
+    public function withThumbnailUrl(string $url): self
+    {
+        $this->thumbnailUrl = $url;
+        return $this;
+    }
+
+    /**
+     * Set a thumbnail from a local file path (relative to storage)
+     */
+    public function withThumbnailPath(string $path): self
+    {
+        $this->thumbnailPath = $path;
+        return $this;
+    }
+
+    /**
+     * Set a thumbnail from an uploaded file
+     */
+    public function withThumbnailFile($file): self
+    {
+        $this->thumbnailFile = $file;
+        return $this;
+    }
+
+    /**
+     * Override the default disk
+     */
+    public function useDisk(string $disk): self
+    {
+        $this->disk = $disk;
+        return $this;
+    }
+
+    /**
+     * Override the default directory
+     */
+    public function useDirectory(?string $directory): self
+    {
+        $this->directory = $directory;
+        return $this;
+    }
+
+    /**
+     * Override processing configuration
+     */
+    public function withProcessingConfig(array $config): self
+    {
+        $this->processingConfig = $config;
         return $this;
     }
 }

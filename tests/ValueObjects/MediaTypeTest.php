@@ -3,10 +3,11 @@
 namespace Carone\Media\Tests\ValueObjects;
 
 use Carone\Media\Tests\TestCase;
+use Carone\Media\UploadStrategies\UploadMediaStrategy;
 use Carone\Media\ValueObjects\MediaType;
 use Carone\Media\Strategies\AudioStrategy;
 use Carone\Media\Strategies\DocumentStrategy;
-use Carone\Media\Strategies\ImageStrategy;
+use Carone\Media\Strategies\UploadImageStrategy;
 use Carone\Media\Strategies\VideoStrategy;
 
 class MediaTypeTest extends TestCase
@@ -44,24 +45,6 @@ class MediaTypeTest extends TestCase
         $this->assertNull(MediaType::tryFrom('invalid'));
         $this->assertNull(MediaType::tryFrom(''));
         $this->assertNull(MediaType::tryFrom('IMAGE'));
-    }
-
-    /** @test */
-    public function it_returns_correct_strategy_classes(): void
-    {
-        $this->assertSame(ImageStrategy::class, MediaType::IMAGE->getStrategyClass());
-        $this->assertSame(VideoStrategy::class, MediaType::VIDEO->getStrategyClass());
-        $this->assertSame(AudioStrategy::class, MediaType::AUDIO->getStrategyClass());
-        $this->assertSame(DocumentStrategy::class, MediaType::DOCUMENT->getStrategyClass());
-    }
-
-    /** @test */
-    public function it_returns_correct_human_readable_labels(): void
-    {
-        $this->assertSame('Image', MediaType::IMAGE->getLabel());
-        $this->assertSame('Video', MediaType::VIDEO->getLabel());
-        $this->assertSame('Audio', MediaType::AUDIO->getLabel());
-        $this->assertSame('Document', MediaType::DOCUMENT->getLabel());
     }
 
     /** @test */

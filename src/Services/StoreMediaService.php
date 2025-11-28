@@ -2,8 +2,9 @@
 
 namespace Carone\Media\Services;
 
-use Carone\Media\Services\MediaService;
 use Carone\Media\Contracts\StoreMediaServiceInterface;
+use Carone\Media\UploadStrategies\UploadImageStrategy;
+use Carone\Media\UploadStrategies\UploadMediaStrategy;
 use Carone\Media\ValueObjects\MediaType;
 use Carone\Media\Models\MediaResource;
 use Carone\Media\ValueObjects\StoreMediaData;
@@ -11,10 +12,8 @@ use Carone\Media\ValueObjects\StoreLocalMediaData;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
 
-class StoreMediaService extends MediaService implements StoreMediaServiceInterface
+class StoreMediaService implements StoreMediaServiceInterface
 {
-    public function __construct() { }
-
     public function store(StoreMediaData $data): MediaResource
     {
         $rules = $data->rules();
@@ -27,8 +26,16 @@ class StoreMediaService extends MediaService implements StoreMediaServiceInterfa
             $this->validateFile($data->file, $data->type);
         }
 
-        $strategy = $this->getStrategy($data->type);
+        $strategy = $this->getUploadStrategy($data);
         return $data->storeWith($strategy);
+    }
+
+    private function getUploadStrategy(StoreMediaData $data): UploadMediaStrategy
+    {
+        return match ($data->type) {
+            MediaType::IMAGE => new UploadImageStrategy($data),
+            default => new UploadMediaStrategy($data),
+        };
     }
 
     private function validateFile(UploadedFile $file, MediaType $mediaType): void
@@ -42,12 +49,12 @@ class StoreMediaService extends MediaService implements StoreMediaServiceInterfa
 
         if (!in_array($extension, $mediaType->getSupportedExtensions())) {
             $supportedTypes = implode(', ', $mediaType->getSupportedExtensions());
-            throw new \InvalidArgumentException("File extension '.{$extension}' is not supported for {$mediaType->getLabel()}. Supported types: {$supportedTypes}");
+            throw new \InvalidArgumentException("File extension '.{$extension}' is not supported for {$mediaType->value}. Supported types: {$supportedTypes}");
         }
 
         $mimeType = $file->getMimeType();
         if (!in_array($mimeType, $mediaType->getSupportedMimeTypes())) {
-            throw new \InvalidArgumentException("MIME type '{$mimeType}' is not supported for {$mediaType->getLabel()}");
+            throw new \InvalidArgumentException("MIME type '{$mimeType}' is not supported for {$mediaType->value}");
         }
 
         $validationRules = $mediaType->getValidationRules();

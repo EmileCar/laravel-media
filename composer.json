@@ -31,7 +31,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Carone\\Media\\Tests\\": "tests/"
+            "Carone\\Media\\Tests\\": "tests/",
+            "Database\\Factories\\": "database/factories/"
         }
     },
     "scripts": {

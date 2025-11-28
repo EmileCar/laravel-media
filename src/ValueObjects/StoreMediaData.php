@@ -2,7 +2,7 @@
 
 namespace Carone\Media\ValueObjects;
 
-use Carone\Media\Strategies\MediaStrategy;
+use Carone\Media\UploadStrategies\UploadMediaStrategy;
 use Carbon\CarbonInterface;
 use Carone\Media\Models\MediaResource;
 use Carone\Media\Utilities\MediaUtilities;
@@ -15,6 +15,7 @@ abstract class StoreMediaData
         public readonly ?string $name,
         public readonly ?string $description,
         public readonly ?CarbonInterface $date,
+        public readonly array $meta = [],
     ) {}
 
     /** Base data for validation/serialization */
@@ -24,7 +25,8 @@ abstract class StoreMediaData
             'type' => $this->type->value,
             'name' => $this->name,
             'description' => $this->description,
-            'date' => $this->date->toDateString(),
+            'date' => $this->date?->toDateString(),
+            'meta' => $this->meta,
         ];
     }
 
@@ -37,6 +39,7 @@ abstract class StoreMediaData
             'name' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
             'date' => 'nullable|date',
+            'meta' => 'nullable|array',
         ];
     }
 
@@ -44,5 +47,5 @@ abstract class StoreMediaData
     abstract public function rules(): array;
 
     /** Polymorphic storage */
-    abstract public function storeWith(MediaStrategy $strategy): MediaResource;
+    abstract public function storeWith(UploadMediaStrategy $strategy): MediaResource;
 }

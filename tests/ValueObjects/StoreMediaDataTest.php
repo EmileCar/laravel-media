@@ -2,7 +2,7 @@
 
 namespace Carone\Media\Tests\ValueObjects;
 
-use Carone\Media\Strategies\MediaStrategy;
+use Carone\Media\UploadStrategies\UploadMediaStrategy;
 use Carbon\Carbon;
 use Carone\Media\Models\MediaResource;
 use Carone\Media\Tests\TestCase;
@@ -165,7 +165,7 @@ class StoreMediaDataTest extends TestCase
             directory: 'test'
         );
 
-        $strategy = $this->createMock(MediaStrategy::class);
+        $strategy = $this->createMock(UploadMediaStrategy::class);
         $expectedResource = new MediaResource();
 
         $strategy->expects($this->once())
@@ -274,7 +274,7 @@ class StoreMediaDataTest extends TestCase
             date: Carbon::now()
         );
 
-        $strategy = $this->createMock(MediaStrategy::class);
+        $strategy = $this->createMock(UploadMediaStrategy::class);
         $expectedResource = new MediaResource();
 
         $strategy->expects($this->once())
@@ -304,14 +304,14 @@ class StoreMediaDataTest extends TestCase
             $data = new StoreExternalMediaData(
                 type: $type,
                 url: $url,
-                name: "Test {$type->getLabel()}",
+                name: "Test {$type->value}",
                 description: null,
                 date: $date
             );
 
             $this->assertSame($type, $data->type);
             $this->assertSame($url, $data->url);
-            $this->assertSame("Test {$type->getLabel()}", $data->name);
+            $this->assertSame("Test {$type->value}", $data->name);
         }
     }
 

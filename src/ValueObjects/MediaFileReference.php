@@ -31,6 +31,21 @@ final readonly class MediaFileReference
         );
     }
 
+    /**
+     * Create a MediaFileReference from a file path
+     */
+    public static function forThumbnail(MediaFileReference $fileReference, string $thumbnailFileNameWithExtension): self
+    {
+        $pathInfo = pathinfo($thumbnailFileNameWithExtension);
+
+        return new self(
+            filename: $pathInfo['filename'] ?? '',
+            extension: $pathInfo['extension'] ?? '',
+            disk: $fileReference->disk,
+            directory: $fileReference->directory,
+        );
+    }
+
     public function getFileNameWithExtension(): string
     {
         return "{$this->filename}.{$this->extension}";

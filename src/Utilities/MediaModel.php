@@ -31,7 +31,7 @@ class MediaModel
     /**
      * Create a new instance of the configured media model
      */
-    public static function make(array $attributes = []): Model
+    public static function make(array $attributes = []): MediaResource
     {
         $modelClass = self::getClass();
         return new $modelClass($attributes);
@@ -40,7 +40,7 @@ class MediaModel
     /**
      * Create and save a new instance of the configured media model
      */
-    public static function create(array $attributes = []): Model
+    public static function create(array $attributes = []): MediaResource
     {
         $modelClass = self::getClass();
         return $modelClass::create($attributes);
@@ -58,7 +58,7 @@ class MediaModel
     /**
      * Find a model by ID or fail
      */
-    public static function findOrFail($id): Model
+    public static function findOrFail($id): MediaResource
     {
         $modelClass = self::getClass();
         return $modelClass::findOrFail($id);
