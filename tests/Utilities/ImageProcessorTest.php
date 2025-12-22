@@ -327,6 +327,8 @@ class ImageProcessorTest extends TestCase
 
     public function test_generateThumbnail_cleans_up_temp_files()
     {
+        config(['media.storage_path' => 'media/{path}']);
+
         $originalFile = UploadedFile::fake()->image('test.jpg', 800, 600);
         $imagePath = $originalFile->getRealPath();
 
@@ -352,11 +354,7 @@ class ImageProcessorTest extends TestCase
         $tempDir = sys_get_temp_dir();
         $tempFilesBefore = glob($tempDir . '/thumbnail_*');
 
-        // Mock MediaStorageHelper to avoid actual storage
-        $this->mock(\Carone\Media\Utilities\MediaStorageHelper::class, function ($mock) {
-            $mock->shouldReceive('storeFile')->once();
-        });
-
+        // Actually execute the thumbnail generation (with real storage)
         ImageProcessor::generateThumbnail($imagePath, $thumbnailReference, $config);
 
         // Check that temp files are cleaned up

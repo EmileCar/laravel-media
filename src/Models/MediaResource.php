@@ -21,6 +21,7 @@ class MediaResource extends Model
     protected $casts = [
         'meta' => 'array',
         'date' => 'date',
+        'type' => 'string',
     ];
 
     public function loadFileReference(): ?MediaFileReference

@@ -60,9 +60,15 @@ class GetMediaServiceTest extends TestCase
 
     public function test_serveMedia_returns_binary_file_response()
     {
-        // Create a real test file
+        // Set config explicitly before test
+        config(['media.storage_path' => 'media/{path}']);
+
+        // Create a real test file on fake disk
         $testContent = 'test image content';
         Storage::disk('public')->put('media/test/image.jpg', $testContent);
+
+        // Verify the file exists
+        $this->assertTrue(Storage::disk('public')->exists('media/test/image.jpg'));
 
         // Create media resource
         $media = MediaResource::factory()->create([
@@ -95,6 +101,9 @@ class GetMediaServiceTest extends TestCase
 
     public function test_serveThumbnail_returns_binary_file_response()
     {
+        // Set config explicitly before test
+        config(['media.storage_path' => 'media/{path}']);
+
         // Create a real test thumbnail file
         $testContent = 'test thumbnail content';
         Storage::disk('public')->put('media/test/image_thumb.jpg', $testContent);

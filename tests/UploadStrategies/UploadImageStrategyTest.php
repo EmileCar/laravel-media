@@ -40,7 +40,7 @@ class UploadImageStrategyTest extends TestCase
 
         $this->assertInstanceOf(MediaResource::class, $result);
         $this->assertEquals('Test Image', $result->display_name);
-        $this->assertEquals('image', $result->type);
+        $this->assertEquals(MediaType::IMAGE->value, $result->type);
         $this->assertEquals('local', $result->source);
         $this->assertNotNull($result->path);
     }
@@ -293,6 +293,7 @@ class UploadImageStrategyTest extends TestCase
 
     public function test_generateThumbnail_creates_thumbnail()
     {
+        config(['media.storage_path' => 'media/{path}']);
         config([
             'media.processing.thumbnail' => [
                 'convert_format' => 'jpg',
@@ -324,7 +325,7 @@ class UploadImageStrategyTest extends TestCase
         $fileReference = new MediaFileReference('test', 'jpg', 'public', 'images');
 
         // Store the original file first so generateThumbnail can read it
-        Storage::disk('public')->put('images/test.jpg', $file->getContent());
+        Storage::disk('public')->put($fileReference->getStoragePath(), $file->getContent());
 
         $reflection = new \ReflectionClass($strategy);
         $method = $reflection->getMethod('generateThumbnail');
@@ -446,6 +447,8 @@ class UploadImageStrategyTest extends TestCase
     public function test_full_workflow_with_all_processing_enabled()
     {
         config([
+            'media.storage_path' => 'media/{path}',
+            'media.disk' => 'public',
             'media.processing.image' => [
                 'enabled' => true,
                 'convert_format' => 'jpg',
@@ -491,8 +494,9 @@ class UploadImageStrategyTest extends TestCase
 
         $this->assertInstanceOf(MediaResource::class, $result);
         $this->assertEquals('Large Test Image', $result->display_name);
-        $this->assertEquals('image', $result->type);
-        $this->assertTrue(Storage::disk('public')->exists($result->path));
+        $this->assertEquals(MediaType::IMAGE->value, $result->type);
+        $fileRef = $result->loadFileReference();
+        $this->assertTrue(Storage::disk('public')->exists($fileRef->getStoragePath()));
     }
 
     protected function tearDown(): void

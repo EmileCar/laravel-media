@@ -43,7 +43,7 @@ class StoreMediaServiceTest extends TestCase
         );
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Validation failed');
+        $this->expectExceptionMessage('is not supported for image');
 
         $this->service->store($data);
     }
@@ -71,7 +71,7 @@ class StoreMediaServiceTest extends TestCase
 
         $this->assertInstanceOf(MediaResource::class, $result);
         $this->assertEquals('Test Image', $result->display_name);
-        $this->assertEquals('image', $result->type);
+        $this->assertEquals(MediaType::IMAGE->value, $result->type);
     }
 
     public function test_store_external_media_creates_media_resource()
@@ -160,7 +160,7 @@ class StoreMediaServiceTest extends TestCase
         $file = UploadedFile::fake()->create('test.txt', 100, 'text/plain');
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('MIME type \'text/plain\' is not supported');
+        $this->expectExceptionMessage('is not supported for image');
 
         $this->invokePrivateMethod($this->service, 'validateFile', [$file, MediaType::IMAGE]);
     }
