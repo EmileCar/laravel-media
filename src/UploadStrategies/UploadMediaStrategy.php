@@ -55,7 +55,7 @@ class UploadMediaStrategy
         $thumbnailData = $this->handleThumbnail($data, $fileReference, $shouldGenerateThumbnail);
 
         $model = MediaModel::create([
-            'type' => $data->type,
+            'type' => $data->type->value,
             'source' => 'local',
             'path' => $fileReference->getPath(),
             'disk' => $fileReference->disk,
@@ -80,7 +80,7 @@ class UploadMediaStrategy
         $thumbnailData = $this->handleExternalThumbnail($data);
 
         return MediaModel::create([
-            'type' => $data->type,
+            'type' => $data->type->value,
             'source' => 'external',
             'url' => $data->url,
             'display_name' => $data->name,
