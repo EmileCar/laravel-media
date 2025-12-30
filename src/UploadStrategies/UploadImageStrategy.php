@@ -59,12 +59,9 @@ class UploadImageStrategy extends UploadMediaStrategy
             return null;
         }
 
-        $thumbnailFileReference = new MediaFileReference(
-            $fileReference->filename,
-            $thumbnailConfig['convert_format'],
-            $fileReference->disk,
-            $fileReference->directory
-        );
+        // Create proper thumbnail file reference with correct disk and unique filename
+        $thumbnailExtension = $thumbnailConfig['convert_format'] ?? 'jpg';
+        $thumbnailFileReference = MediaFileReference::createForThumbnail($fileReference, $thumbnailExtension);
 
         try {
             $physicalPath = MediaStorageHelper::getPhysicalPath($fileReference);

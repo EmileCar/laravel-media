@@ -3,6 +3,7 @@
 namespace Carone\Media\Utilities;
 
 use Carone\Media\ValueObjects\MediaFileReference;
+use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Laravel\Facades\Image;
 use Intervention\Image\Interfaces\ImageInterface;
 
@@ -21,7 +22,7 @@ class ImageProcessor
     /**
      * Generate a thumbnail from an image
      */
-    public static function generateThumbnail(string $imagePath, MediaFileReference $refernce, array $config): void
+    public static function generateThumbnail(string $imagePath, MediaFileReference $thumbnailReference, array $config): void
     {
         $image = Image::read($imagePath);
 
@@ -33,7 +34,9 @@ class ImageProcessor
         unset($image);
         gc_collect_cycles();
 
-        MediaStorageHelper::storeFile($refernce, file_get_contents($tempPath));
+        // Store using thumbnail-specific storage path
+        $thumbnailStoragePath = $thumbnailReference->getThumbnailStoragePath();
+        Storage::disk($thumbnailReference->disk)->put($thumbnailStoragePath, file_get_contents($tempPath));
 
         if (file_exists($tempPath)) {
             unlink($tempPath);
