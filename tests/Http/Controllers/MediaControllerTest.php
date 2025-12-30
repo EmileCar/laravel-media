@@ -388,7 +388,7 @@ class MediaControllerTest extends TestCase
             'type' => 'image',
         ]);
 
-        $response = $this->get($media->id);
+        $response = $this->get("/media/{$media->id}");
 
         $response->assertOk();
         $this->assertNotEmpty($response->headers->get('Content-Type'));
@@ -397,7 +397,7 @@ class MediaControllerTest extends TestCase
     /** @test */
     public function it_returns_404_for_nonexistent_media_file()
     {
-        $response = $this->get('/media/image/nonexistent.jpg');
+        $response = $this->get('/media/1');
 
         $response->assertNotFound();
     }
@@ -419,7 +419,7 @@ class MediaControllerTest extends TestCase
             'type' => 'image',
         ]);
 
-        $response = $this->get("/media/image/thumbnails/test/image.jpg");
+        $response = $this->get("/media/thumbnails/{$media->id}");
 
         $response->assertOk();
     }
@@ -434,7 +434,7 @@ class MediaControllerTest extends TestCase
             'type' => 'image',
         ]);
 
-        $response = $this->get('/media/image/thumbnails/test/image.jpg');
+        $response = $this->get("/media/thumbnails/{$media->id}");
 
         $response->assertNotFound();
     }

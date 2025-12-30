@@ -236,10 +236,10 @@ class MediaController extends Controller
     /**
      * Serve media file
      */
-    public function getMedia(string $type, string $identifier): BinaryFileResponse
+    public function getMedia(int $id): BinaryFileResponse
     {
         try {
-            return $this->getMediaService->serveMedia($identifier);
+            return $this->getMediaService->serveMedia($id);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             abort(404, 'Media not found');
         } catch (\Exception $e) {
@@ -251,10 +251,10 @@ class MediaController extends Controller
     /**
      * Serve thumbnail
      */
-    public function getThumbnail(string $type, string $identifier): BinaryFileResponse
+    public function getThumbnail(int $id): BinaryFileResponse
     {
         try {
-            return $this->getMediaService->serveThumbnail($identifier);
+            return $this->getMediaService->serveThumbnail($id);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             abort(404, 'Thumbnail not found');
         } catch (\Exception $e) {

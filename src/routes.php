@@ -27,12 +27,12 @@ Route::prefix('api/media')->group(function () {
 Route::prefix('media')->group(function () {
 
     // Serve media files
-    Route::get('{type}/{identifier}', [MediaController::class, 'getMedia'])
-        ->where('type', 'image|video|audio|document')
-        ->where('identifier', '.*');
+    Route::get('{id}', [MediaController::class, 'getMedia'])
+        ->where('id', '[0-9]+');
 
     // Serve thumbnails
-    Route::get('{type}/thumbnails/{identifier}', [MediaController::class, 'getThumbnail'])
-        ->where('type', 'image|video|audio|document')
-        ->where('identifier', '.*');
+    if (config('media.thumbnails.enabled', false)) {
+        Route::get('thumbnails/{id}', [MediaController::class, 'getThumbnail'])
+            ->where('id', '[0-9]+');
+    }
 });
