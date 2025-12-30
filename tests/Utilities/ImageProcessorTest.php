@@ -362,6 +362,64 @@ class ImageProcessorTest extends TestCase
         $this->assertEquals(count($tempFilesBefore), count($tempFilesAfter));
     }
 
+    public function test_encodeAndSave_scales_down_oversized_images()
+    {
+        config(['media.processing.image.max_dimension_before_encode' => 3000]);
+        config(['media.processing.image.scaled_max_dimension' => 2560]);
+
+        // Create a large image (4000x3000)
+        $largeImage = Image::create(4000, 3000)->fill('ffffff');
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'test_');
+
+        ImageProcessor::encodeAndSave($largeImage, $tempPath, 'jpg', 85);
+
+        $this->assertFileExists($tempPath);
+
+        // Verify the saved image is scaled down
+        $savedImage = Image::read($tempPath);
+        $this->assertEquals(2560, $savedImage->width());
+        $this->assertEquals(1920, $savedImage->height());
+
+        unlink($tempPath);
+    }
+
+    public function test_encodeAndSave_does_not_scale_normal_sized_images()
+    {
+        config(['media.processing.image.max_dimension_before_encode' => 3000]);
+
+        // Create a normal sized image (2000x1500)
+        $normalImage = Image::create(2000, 1500)->fill('ffffff');
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'test_');
+
+        ImageProcessor::encodeAndSave($normalImage, $tempPath, 'jpg', 85);
+
+        $this->assertFileExists($tempPath);
+
+        // Verify the saved image maintains its original size
+        $savedImage = Image::read($tempPath);
+        $this->assertEquals(2000, $savedImage->width());
+        $this->assertEquals(1500, $savedImage->height());
+
+        unlink($tempPath);
+    }
+
+    public function test_scaleDownOversizedImage_maintains_aspect_ratio()
+    {
+        config(['media.processing.image.max_dimension_before_encode' => 3000]);
+        config(['media.processing.image.scaled_max_dimension' => 2560]);
+
+        // Create a 4000x2000 image (2:1 aspect ratio)
+        $image = Image::create(4000, 2000)->fill('ffffff');
+
+        $scaled = $this->invokePrivateMethod(ImageProcessor::class, 'scaleDownOversizedImage', [$image]);
+
+        // Should scale to 2560x1280 (maintaining 2:1 ratio)
+        $this->assertEquals(2560, $scaled->width());
+        $this->assertEquals(1280, $scaled->height());
+    }
+
     /**
      * Helper method to invoke private/protected methods for testing
      */

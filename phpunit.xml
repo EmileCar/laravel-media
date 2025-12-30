@@ -18,7 +18,7 @@
         <env name="APP_KEY" value="base64:Hupx3yAySikrM2/EdkZQNOWLlKrXyEw3zt1RcP1hhJU="/>
         <env name="DB_CONNECTION" value="sqlite"/>
         <env name="DB_DATABASE" value=":memory:"/>
-        <env name="MEDIA_STORAGE_DISK" value="local"/>
+        <env name="DEFAULT_MEDIA_STORAGE_DISK" value="local"/>
         <env name="CACHE_DRIVER" value="array"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

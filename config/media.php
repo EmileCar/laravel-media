@@ -10,11 +10,11 @@ return [
     | by the media library. Can be overridden per upload via the builder.
     |---------------------------------------------------------------------------
     */
-    'disk' => env('MEDIA_STORAGE_DISK', 'public'),
+    'disk' => env('DEFAULT_MEDIA_STORAGE_DISK', 'public'),
 
     /*
     |--------------------------------------------------------------------------
-    | Directory Structure
+    | Default Directory Structure
     |--------------------------------------------------------------------------
     | Configure where uploaded media should be placed on the disk.
     | Replace {path} with the appropriate path segment.
@@ -23,7 +23,7 @@ return [
     | Can be overridden per upload via the builder.
     |--------------------------------------------------------------------------
     */
-    'storage_path' => 'media/{path}',
+    'storage_path' => env('DEFAULT_MEDIA_STORAGE_PATH', 'media/{path}'),
 
     /*
     |--------------------------------------------------------------------------
@@ -37,11 +37,32 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Image Processing Driver
+    |--------------------------------------------------------------------------
+    | The image driver to use for processing. Options: 'imagick' or 'gd'
+    |
+    | Imagick (ImageMagick extension):
+    |   - Streams image data, using 3-5x less memory
+    |   - Better for large images and high-throughput applications
+    |   - Requires php-imagick extension to be installed
+    |
+    | GD (Graphics Draw):
+    |   - Built into most PHP installations by default
+    |   - Loads entire images into memory before processing
+    |   - Suitable for smaller images or low-volume applications
+    |
+    | See README for detailed comparison and installation instructions.
+    |--------------------------------------------------------------------------
+    */
+    'image_driver' => env('IMAGE_DRIVER', 'imagick'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Thumbnail Configuration
     |--------------------------------------------------------------------------
     | Configure how thumbnails are generated and stored for media files.
     | Thumbnails are optional for ALL media types (image, video, audio, document).
-    | 
+    |
     | For images: Thumbnails can be automatically generated from the source image.
     | For other types or external media: Thumbnails can be provided as:
     |   - An external URL (thumbnail_url) via builder
@@ -61,13 +82,13 @@ return [
         // This can be overridden per upload via the builder's withThumbnail() method
         'auto_generate_for_images' => env('MEDIA_AUTO_GENERATE_THUMBNAILS', false),
 
-        // The filesystem disk where thumbnails will be stored
+        // The filesystem disk where thumbnails always will be stored
         // If null, will use the same disk as the media file itself
         'disk' => env('MEDIA_THUMBNAILS_DISK', null),
 
         // Path structure on the disk where thumbnails are stored
         // {path} will be replaced with the media's directory path
-        'storage_path' => 'media/thumbnails/{path}',
+        'storage_path' => env('MEDIA_THUMBNAILS_STORAGE_PATH', 'media/thumbnails/{path}'),
 
         // Number of minutes to cache thumbnails when served via a controller
         // Set to null to disable caching
@@ -131,6 +152,14 @@ return [
             'enabled' => true,
             'convert_format' => null, // Convert all images to this format (jpg, png, webp, etc.) or null to keep original
             'quality' => 85, // Quality for JPEG/WebP compression (0-100)
+
+            // Automatic scaling for oversized images
+            // When enabled, images exceeding max_dimension_before_encode will be scaled down
+            // This helps prevent memory issues and reduces storage/bandwidth usage
+            'scale_oversized_images' => true, // Enable/disable automatic scaling
+            'max_dimension_before_encode' => 3000, // Images larger than this will be scaled down
+            'scaled_max_dimension' => 2560, // Target dimension for oversized images (still HD quality)
+
             'resize' => [
                 'enabled' => false,
                 'width' => 1920,
@@ -153,7 +182,7 @@ return [
             ],
             'optimize' => true, // Apply optimization
         ],
-        
+
         // Configuration for generating thumbnails from images
         'thumbnail' => [
             'convert_format' => 'jpg', // Convert all thumbnails to this format (jpg, png, webp, etc.) or null to keep original

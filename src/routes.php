@@ -8,6 +8,13 @@ Route::prefix('api/media')->group(function () {
     Route::get('type/{type}', [MediaController::class, 'getMediaByType']);
     Route::get('search', [MediaController::class, 'searchMedia']);
 
+    // Upload media
+    Route::post('upload', [MediaController::class, 'uploadMedia']);
+
+    // Get media by ID
+    Route::get('{id}', [MediaController::class, 'getMediaById'])
+        ->where('id', '[0-9]+');
+
     // Delete media
     Route::delete('{id}', [MediaController::class, 'deleteMedia'])
         ->where('id', '[0-9]+');
@@ -22,10 +29,10 @@ Route::prefix('media')->group(function () {
     // Serve media files
     Route::get('{type}/{identifier}', [MediaController::class, 'getMedia'])
         ->where('type', 'image|video|audio|document')
-        ->where('identifier', '[^/]+');
+        ->where('identifier', '.*');
 
     // Serve thumbnails
     Route::get('{type}/thumbnails/{identifier}', [MediaController::class, 'getThumbnail'])
         ->where('type', 'image|video|audio|document')
-        ->where('identifier', '[^/]+');
+        ->where('identifier', '.*');
 });

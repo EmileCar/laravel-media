@@ -80,7 +80,7 @@ class GetMediaServiceTest extends TestCase
 
         config(['media.cache_minutes' => 60]);
 
-        $result = $this->service->serveMedia('test/image.jpg');
+        $result = $this->service->serveMedia($media->id);
 
         $this->assertInstanceOf(BinaryFileResponse::class, $result);
     }
