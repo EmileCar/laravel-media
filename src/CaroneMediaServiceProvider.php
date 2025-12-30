@@ -10,7 +10,7 @@ use Carone\Media\Services\GetMediaService;
 use Carone\Media\Services\StoreMediaService;
 use Carone\Media\Utilities\MediaModel;
 use Carone\Media\MediaManager;
-use Carone\Media\Console\Commands\CheckImageDriver;
+use Carone\Media\Console\Commands\MediaInfo;
 use Illuminate\Support\ServiceProvider;
 use Intervention\Image\ImageManager as InterventionImageManager;
 use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
@@ -30,7 +30,7 @@ class CaroneMediaServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                CheckImageDriver::class,
+                MediaInfo::class,
             ]);
         }
 

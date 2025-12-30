@@ -151,7 +151,7 @@ class MediaInfo extends Command
 
         $this->line('  Image processing:');
         $this->line("    Quality: <fg=yellow>{$quality}</>%");
-        $this->line("    Scale oversized images: <fg=yellow>" . ($scaleOversized ? 'Enabled' : 'Disabled') . '</>');
+        $this->line("    Scale oversized images: <fg=yellow>" . ($scaleOversized ? 'Enabled' : 'Disabled') . '</>'); 
         if ($scaleOversized) {
             $this->line("      Threshold: {$maxDimension}px");
             $this->line("      Target size: {$scaledDimension}px");
@@ -162,8 +162,8 @@ class MediaInfo extends Command
         $thumbnailsEnabled = config('media.thumbnails.enabled', true);
         $autoGenerate = config('media.thumbnails.auto_generate_for_images', false);
         $this->line('  Thumbnails:');
-        $this->line("    Enabled: <fg=yellow>" . ($thumbnailsEnabled ? 'Yes' : 'No') . '</>');
-        $this->line("    Auto-generate for images: <fg=yellow>" . ($autoGenerate ? 'Yes' : 'No') . '</>');
+        $this->line("    Enabled: <fg=yellow>" . ($thumbnailsEnabled ? 'Yes' : 'No') . '</>'); 
+        $this->line("    Auto-generate for images: <fg=yellow>" . ($autoGenerate ? 'Yes' : 'No') . '</>'); 
     }
 
     /**

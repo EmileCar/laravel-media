@@ -527,19 +527,16 @@ extension=imagick.so
 
 ### Verification
 
-After installation, verify it's working:
+After installation, verify your setup:
 
 ```bash
-php artisan media:check-driver
+php artisan media:info
 ```
 
-You should see:
-```
-✅ Imagick extension: INSTALLED
-   Version: ImageMagick 7.x.x
-
-Active driver: imagick
-```
+This will display:
+- Active image driver and available extensions
+- PHP memory limit and recommendations
+- General media package configuration
 
 Or check directly:
 ```bash
@@ -587,19 +584,34 @@ If Imagick is configured but not installed, the package will:
 
 ## Memory Recommendations
 
-### For Imagick
-- Recommended: `memory_limit = 256M`
-- Can handle 4000×4000 images efficiently
+### Recommended Settings
 
-### For GD
-- Minimum: `memory_limit = 256M` for images up to 2500×2500
-- Recommended: `memory_limit = 512M` for images up to 4000×4000
-- Or enable `scale_oversized_images` to reduce memory usage
+For applications handling large images, configure adequate memory:
 
-Configure in **php.ini**:
 ```ini
-memory_limit = 256M
+# php.ini
+memory_limit = 256M  # Minimum recommended for large images (4000×4000)
 ```
+
+### Memory Requirements by Image Size
+
+| Image Size | Minimum memory_limit | Recommended |
+|------------|---------------------|-------------|
+| Up to 2000×2000 | 128M | 256M |
+| Up to 4000×4000 | 256M | 512M |
+| Larger than 4000×4000 | 512M+ | 1G |
+
+**Note:** Imagick uses less memory than GD for the same images. With `scale_oversized_images` enabled, memory requirements are further reduced.
+
+### Check Your Settings
+
+Run the info command to see your current configuration:
+
+```bash
+php artisan media:info
+```
+
+This will warn you if your memory limit is below the recommended 256M.
 
 ## Troubleshooting
 
@@ -613,8 +625,9 @@ memory_limit = 256M
 
 ### Still getting memory errors with Imagick
 - Check PHP memory limit: `php -i | grep memory_limit`
-- Increase if needed: `memory_limit = 256M`
-- Verify Imagick is actually being used: `php artisan media:check-driver`
+- Increase if needed: `memory_limit = 256M` (minimum)
+- Verify Imagick is actually being used: `php artisan media:info`
+- Enable `scale_oversized_images` in config
 
 ### Images look worse quality
 - Check quality settings in `config/media.php`:
