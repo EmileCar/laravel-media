@@ -1,0 +1,9 @@
+# Exclude development and testing files from Composer installations
+/.github export-ignore
+/tests export-ignore
+/.editorconfig export-ignore
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/phpunit.xml export-ignore
+/phpunit.xml.dist export-ignore
+/.phpunit.cache export-ignore

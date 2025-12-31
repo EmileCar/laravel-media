@@ -126,6 +126,6 @@ class MediaUtilities
             );
         }
 
-        return new MediaFileReference($finalName, $extension, $diskName, $data->directory);
+        return new MediaFileReference($finalName, $extension, $diskName, $data->directory ?? '');
     }
 }

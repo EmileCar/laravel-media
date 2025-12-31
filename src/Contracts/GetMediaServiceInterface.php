@@ -27,18 +27,18 @@ interface GetMediaServiceInterface
     /**
      * Serve media file by path
      *
-     * @param string $path
+     * @param int $id
      * @return BinaryFileResponse
      */
-    public function serveMedia(string $path): BinaryFileResponse;
+    public function serveMedia(int $id): BinaryFileResponse;
 
     /**
      * Serve thumbnail file by media path
      *
-     * @param string $path
+     * @param int $id
      * @return BinaryFileResponse
      */
-    public function serveThumbnail(string $path): BinaryFileResponse;
+    public function serveThumbnail(int $id): BinaryFileResponse;
 
     /**
      * Search media resources based on criteria

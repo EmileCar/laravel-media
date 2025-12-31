@@ -46,6 +46,26 @@ final readonly class MediaFileReference
         );
     }
 
+    /**
+     * Create a thumbnail file reference with proper disk and directory configuration
+     */
+    public static function createForThumbnail(MediaFileReference $originalFileReference, string $extension): self
+    {
+        $thumbnailDisk = config('media.thumbnails.disk') ?? $originalFileReference->disk;
+        $thumbnailFilename = $originalFileReference->filename . '_thumb';
+
+        // Keep the same directory structure as the original file
+        // The storage_path config will handle the 'media/thumbnails/{path}' pattern
+        $directory = $originalFileReference->directory;
+
+        return new self(
+            filename: $thumbnailFilename,
+            extension: $extension,
+            disk: $thumbnailDisk,
+            directory: $directory,
+        );
+    }
+
     public function getFileNameWithExtension(): string
     {
         return "{$this->filename}.{$this->extension}";
@@ -73,5 +93,14 @@ final readonly class MediaFileReference
     public function getStoragePath(): string
     {
         return MediaStorageHelper::resolveStoragePath($this->getPath());
+    }
+
+    /**
+     * Get the full storage location path for thumbnails
+     * @return string
+     */
+    public function getThumbnailStoragePath(): string
+    {
+        return MediaStorageHelper::resolveThumbnailStoragePath($this->getPath());
     }
 }

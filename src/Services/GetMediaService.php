@@ -26,11 +26,10 @@ class GetMediaService implements GetMediaServiceInterface, AppliesSearchCriteria
         return MediaUtilities::getEnabled();
     }
 
-    public function serveMedia(string $path): BinaryFileResponse
+    public function serveMedia(int $id): BinaryFileResponse
     {
         $media = MediaModel::where('source', 'local')
-            ->where('path', $path)
-            ->firstOrFail();
+            ->findOrFail($id);
 
         $fileReference = $media->loadFileReference();
         if (!$fileReference || !MediaStorageHelper::doesFileExist($fileReference->disk, $fileReference->getStoragePath())) {
@@ -48,11 +47,11 @@ class GetMediaService implements GetMediaServiceInterface, AppliesSearchCriteria
         ]);
     }
 
-    public function serveThumbnail(string $path): BinaryFileResponse
+    public function serveThumbnail(int $id): BinaryFileResponse
     {
         $media = MediaModel::where('source', 'local')
-            ->where('path', $path)
-            ->firstOrFail();
+            ->where('thumbnail_path', '!=', null)
+            ->findOrFail($id);
 
         $fileReference = $media->loadThumbnailFileReference();
         if (!$fileReference || !MediaStorageHelper::doesFileExist($fileReference->disk, $fileReference->getStoragePath())) {

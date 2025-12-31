@@ -80,7 +80,7 @@ class GetMediaServiceTest extends TestCase
 
         config(['media.cache_minutes' => 60]);
 
-        $result = $this->service->serveMedia('test/image.jpg');
+        $result = $this->service->serveMedia($media->id);
 
         $this->assertInstanceOf(BinaryFileResponse::class, $result);
     }
@@ -96,7 +96,7 @@ class GetMediaServiceTest extends TestCase
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class);
 
-        $this->service->serveMedia('test/missing.jpg');
+        $this->service->serveMedia($media->id);
     }
 
     public function test_serveThumbnail_returns_binary_file_response()
@@ -117,7 +117,7 @@ class GetMediaServiceTest extends TestCase
             'thumbnail_disk' => 'public',
         ]);
 
-        $result = $this->service->serveThumbnail('test/image.jpg');
+        $result = $this->service->serveThumbnail($media->id);
 
         $this->assertInstanceOf(BinaryFileResponse::class, $result);
     }

@@ -3,15 +3,26 @@
 namespace Carone\Media\Utilities;
 
 use Carone\Media\ValueObjects\MediaFileReference;
+use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Laravel\Facades\Image;
 use Intervention\Image\Interfaces\ImageInterface;
 
 class ImageProcessor
 {
     /**
+     * Maximum dimensions before image is scaled down to prevent memory issues (GD only)
+     */
+    private const MAX_DIMENSION_BEFORE_ENCODE = 3000;
+
+    /**
+     * Target dimension when scaling down oversized images (GD only)
+     */
+    private const SCALED_MAX_DIMENSION = 2560; // 2.5K resolution
+
+    /**
      * Generate a thumbnail from an image
      */
-    public static function generateThumbnail(string $imagePath, MediaFileReference $refernce, array $config): void
+    public static function generateThumbnail(string $imagePath, MediaFileReference $thumbnailReference, array $config): void
     {
         $image = Image::read($imagePath);
 
@@ -19,7 +30,13 @@ class ImageProcessor
         $tempPath = tempnam(sys_get_temp_dir(), 'thumbnail_');
         static::encodeAndSave($image, $tempPath, $config['convert_format'] ?? 'jpg', $config['quality']);
 
-        MediaStorageHelper::storeFile($refernce, file_get_contents($tempPath));
+        // Free image from memory immediately after encoding
+        unset($image);
+        gc_collect_cycles();
+
+        // Store using thumbnail-specific storage path
+        $thumbnailStoragePath = $thumbnailReference->getThumbnailStoragePath();
+        Storage::disk($thumbnailReference->disk)->put($thumbnailStoragePath, file_get_contents($tempPath));
 
         if (file_exists($tempPath)) {
             unlink($tempPath);
@@ -89,9 +106,15 @@ class ImageProcessor
 
     /**
      * Save image with specific format
+     * Automatically scales down oversized images if enabled in config
      */
     public static function encodeAndSave(ImageInterface $image, string $path, string $format, int $quality): void
     {
+        // Scale down oversized images if enabled in config
+        if (config('media.processing.image.scale_oversized_images', true)) {
+            $image = static::scaleDownOversizedImage($image);
+        }
+
         $encoder = match (strtolower($format)) {
             'jpg', 'jpeg' => new \Intervention\Image\Encoders\JpegEncoder($quality),
             'png' => new \Intervention\Image\Encoders\PngEncoder(),
@@ -99,7 +122,38 @@ class ImageProcessor
             default => new \Intervention\Image\Encoders\JpegEncoder($quality),
         };
 
-        $image->encode($encoder)->save($path);
+        $encoded = $image->encode($encoder);
+        $encoded->save($path);
+
+        // Free encoded image from memory
+        unset($encoded);
+    }
+
+    /**
+     * Scale down images that exceed maximum dimension threshold
+     * Helps prevent memory exhaustion and reduces storage/bandwidth usage
+     */
+    private static function scaleDownOversizedImage(ImageInterface $image): ImageInterface
+    {
+        $width = $image->width();
+        $height = $image->height();
+        $maxDimension = max($width, $height);
+
+        // Get thresholds from config or use defaults
+        $maxDimensionThreshold = config('media.processing.image.max_dimension_before_encode', static::MAX_DIMENSION_BEFORE_ENCODE);
+        $scaledMaxDimension = config('media.processing.image.scaled_max_dimension', static::SCALED_MAX_DIMENSION);
+
+        // Only scale if image exceeds threshold
+        if ($maxDimension <= $maxDimensionThreshold) {
+            return $image;
+        }
+
+        // Calculate scale factor to bring largest dimension down to target
+        $scaleFactor = $scaledMaxDimension / $maxDimension;
+        $newWidth = (int) round($width * $scaleFactor);
+        $newHeight = (int) round($height * $scaleFactor);
+
+        return $image->scale($newWidth, $newHeight);
     }
 
     /**
