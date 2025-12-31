@@ -98,7 +98,7 @@ class GetMediaServiceTest extends TestCase
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class);
 
-        $this->service->serveMedia('test/missing.jpg');
+        $this->service->serveMedia($media->id);
     }
 
     public function test_serveThumbnail_returns_binary_file_response()

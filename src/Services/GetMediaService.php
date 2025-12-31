@@ -26,15 +26,14 @@ class GetMediaService implements GetMediaServiceInterface, AppliesSearchCriteria
         return MediaUtilities::getEnabled();
     }
 
-    public function serveMedia(string $path): BinaryFileResponse
+    public function serveMedia(int $id): BinaryFileResponse
     {
         // Decode the path in case it contains URL-encoded characters
         $path = urldecode($path);
 
         // Find media by path (disk is no longer stored, always uses config)
         $media = MediaModel::where('source', 'local')
-            ->where('path', $path)
-            ->firstOrFail();
+            ->findOrFail($id);
 
         $fileReference = $media->loadFileReference();
         if (!$fileReference || !MediaStorageHelper::doesFileExist($fileReference->disk, $fileReference->getStoragePath())) {
