@@ -12,7 +12,6 @@ return new class extends Migration {
             $table->enum('type', ['image', 'video', 'audio', 'document'])->index();
             $table->enum('source', ['local', 'external'])->default('local')->index();
             $table->string('path')->nullable();
-            $table->string('disk')->nullable();
             $table->string('url', 2048)->nullable();
             $table->string('display_name')->nullable();
             $table->text('description')->nullable();
@@ -21,11 +20,10 @@ return new class extends Migration {
 
             $table->string('thumbnail_path')->nullable();
             $table->string('thumbnail_url', 2048)->nullable();
-            $table->string('thumbnail_disk')->nullable();
 
             $table->timestamps();
 
-            $table->unique(['disk', 'path'], 'unique_disk_path');
+            $table->unique(['path'], 'unique_path');
 
             $table->index(['source', 'type'], 'source_type_index');
             $table->index('created_at');

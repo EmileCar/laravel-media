@@ -32,6 +32,15 @@ final readonly class MediaFileReference
     }
 
     /**
+     * Create a MediaFileReference from a thumbnail path
+     * This reference will use getThumbnailStoragePath() for proper resolution
+     */
+    public static function fromThumbnailPath(string $path, string $disk): self
+    {
+        return self::fromPath($path, $disk);
+    }
+
+    /**
      * Create a MediaFileReference from a file path
      */
     public static function forThumbnail(MediaFileReference $fileReference, string $thumbnailFileNameWithExtension): self

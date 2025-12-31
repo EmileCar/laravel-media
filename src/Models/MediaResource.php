@@ -13,9 +13,9 @@ class MediaResource extends Model
     protected $table = 'media_resources';
 
     protected $fillable = [
-        'type', 'source', 'path', 'disk', 'url',
+        'type', 'source', 'path', 'url',
         'display_name', 'description', 'date', 'meta',
-        'thumbnail_path', 'thumbnail_url', 'thumbnail_disk'
+        'thumbnail_path', 'thumbnail_url'
     ];
 
     protected $casts = [
@@ -30,11 +30,13 @@ class MediaResource extends Model
             return null;
         }
 
-        return MediaFileReference::fromPath($this->path, $this->disk);
+        $disk = config('media.disk');
+        return MediaFileReference::fromPath($this->path, $disk);
     }
 
     /**
      * Load thumbnail file reference for local thumbnails
+     * Uses the thumbnail storage path configuration
      */
     public function loadThumbnailFileReference(): ?MediaFileReference
     {
@@ -42,8 +44,8 @@ class MediaResource extends Model
             return null;
         }
 
-        $disk = $this->thumbnail_disk ?? $this->disk;
-        return MediaFileReference::fromPath($this->thumbnail_path, $disk);
+        $thumbnailDisk = config('media.thumbnails.disk') ?? config('media.disk');
+        return MediaFileReference::fromThumbnailPath($this->thumbnail_path, $thumbnailDisk);
     }
 
     /**
@@ -58,7 +60,7 @@ class MediaResource extends Model
 
         // Generate URL from local thumbnail path
         if (!empty($this->thumbnail_path)) {
-            $disk = $this->thumbnail_disk ?? $this->disk;
+            $disk = config('media.thumbnails.disk') ?? config('media.disk');
             return \Storage::disk($disk)->url($this->thumbnail_path);
         }
 

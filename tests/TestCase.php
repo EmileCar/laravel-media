@@ -40,8 +40,10 @@ abstract class TestCase extends Orchestra
 
         $app['config']->set('media.disk', 'local');
         $app['config']->set('media.storage_path', 'media/{type}');
+        $app['config']->set('media.thumbnails.storage_path', 'media/thumbnails/{path}');
         $app['config']->set('media.generate_thumbnails', true);
         $app['config']->set('media.enabled_types', ['image', 'video', 'audio', 'document']);
+        $app['config']->set('media.management_middleware', []); // No auth for tests
         $app['config']->set('media.validation', [
             'image' => ['mimes:jpg,jpeg,png,gif', 'max:5120'],
             'video' => ['mimes:mp4,mov,avi', 'max:20480'],

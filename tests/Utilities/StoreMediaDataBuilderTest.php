@@ -330,18 +330,6 @@ class StoreMediaDataBuilderTest extends TestCase
     }
 
     /** @test */
-    public function local_builder_can_set_disk(): void
-    {
-        $file = $this->createFakeImageFile('test.jpg');
-
-        $data = StoreMediaDataBuilder::fromFile($file)
-            ->useDisk('custom_disk')
-            ->build();
-
-        $this->assertSame('custom_disk', $data->disk);
-    }
-
-    /** @test */
     public function builder_merges_metadata_correctly(): void
     {
         $file = $this->createFakeImageFile('test.jpg');

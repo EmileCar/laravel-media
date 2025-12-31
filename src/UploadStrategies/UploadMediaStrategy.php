@@ -58,7 +58,6 @@ class UploadMediaStrategy
             'type' => $data->type->value,
             'source' => 'local',
             'path' => $fileReference->getPath(),
-            'disk' => $fileReference->disk,
             'display_name' => $data->name,
             'description' => $data->description,
             'date' => $data->date,
@@ -69,7 +68,6 @@ class UploadMediaStrategy
             ], $data->meta ?? []),
             'thumbnail_path' => $thumbnailData['path'] ?? null,
             'thumbnail_url' => $thumbnailData['url'] ?? null,
-            'thumbnail_disk' => $thumbnailData['disk'] ?? null,
         ]);
 
         return $model;
@@ -91,7 +89,6 @@ class UploadMediaStrategy
             ], $data->meta ?? []),
             'thumbnail_path' => $thumbnailData['path'] ?? null,
             'thumbnail_url' => $thumbnailData['url'] ?? null,
-            'thumbnail_disk' => $thumbnailData['disk'] ?? null,
         ]);
     }
 
@@ -111,7 +108,6 @@ class UploadMediaStrategy
         // Priority 2: Explicit thumbnail path
         if (!empty($data->thumbnailPath)) {
             $result['path'] = $data->thumbnailPath;
-            $result['disk'] = $data->disk ?? config('media.disk');
             return $result;
         }
 
@@ -120,7 +116,6 @@ class UploadMediaStrategy
             $thumbnailRef = $this->storeThumbnailFile($data->thumbnailFile, $fileReference);
             if ($thumbnailRef) {
                 $result['path'] = $thumbnailRef->getPath();
-                $result['disk'] = $thumbnailRef->disk;
             }
             return $result;
         }
@@ -130,7 +125,6 @@ class UploadMediaStrategy
             $thumbnailRef = $this->generateThumbnail($fileReference);
             if ($thumbnailRef) {
                 $result['path'] = $thumbnailRef->getPath();
-                $result['disk'] = $thumbnailRef->disk;
             }
         }
 
@@ -153,7 +147,6 @@ class UploadMediaStrategy
         // Priority 2: Explicit thumbnail path (less common for external media)
         if (!empty($data->thumbnailPath)) {
             $result['path'] = $data->thumbnailPath;
-            $result['disk'] = config('media.disk');
             return $result;
         }
 
@@ -169,7 +162,6 @@ class UploadMediaStrategy
             MediaStorageHelper::storeFile($thumbnailRef, file_get_contents($data->thumbnailFile->getRealPath()));
 
             $result['path'] = $thumbnailRef->getPath();
-            $result['disk'] = $thumbnailRef->disk;
         }
 
         return $result;
@@ -181,7 +173,7 @@ class UploadMediaStrategy
     protected function storeThumbnailFile($thumbnailFile, MediaFileReference $mainFileReference): ?MediaFileReference
     {
         try {
-            $disk = config('media.thumbnails.disk') ?? $mainFileReference->disk;
+            $disk = config('media.thumbnails.disk') ?? config('media.disk');
             $directory = $mainFileReference->directory;
             $filename = $mainFileReference->filename . '_thumb';
             $extension = $thumbnailFile->getClientOriginalExtension();

@@ -97,7 +97,6 @@ class StoreLocalMediaDataBuilder
             date: $this->date,
             meta: $this->meta,
             directory: $this->directory,
-            disk: $this->disk,
             generateThumbnail: $this->generateThumbnail,
             thumbnailUrl: $this->thumbnailUrl,
             thumbnailPath: $this->thumbnailPath,

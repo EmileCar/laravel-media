@@ -105,7 +105,7 @@ class MediaUtilities
     public static function createUniqueFileReference(StoreLocalMediaData $data): MediaFileReference
     {
         $storageBase = MediaStorageHelper::resolveStoragePath($data->directory);
-        $diskName = $data->disk ?? config('media.disk', 'public');
+        $diskName = config('media.disk', 'public');
 
         $extension = strtolower($data->file->getClientOriginalExtension());
         $base = $data->fileName ?? $data->name ?? pathinfo($data->file->getClientOriginalName(), PATHINFO_FILENAME);

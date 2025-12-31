@@ -598,6 +598,7 @@ class UploadImageStrategyTest extends TestCase
         Storage::fake('thumbnails');
 
         config([
+            'media.disk' => 'public',
             'media.thumbnails.enabled' => true,
             'media.thumbnails.disk' => 'thumbnails',
             'media.thumbnails.storage_path' => 'media/thumbnails/{path}',
@@ -624,7 +625,6 @@ class UploadImageStrategyTest extends TestCase
             description: 'Test thumbnail disk configuration',
             date: now(),
             directory: 'test',
-            disk: 'public',
             generateThumbnail: true
         );
 

@@ -26,22 +26,27 @@ class GetMediaService implements GetMediaServiceInterface, AppliesSearchCriteria
         return MediaUtilities::getEnabled();
     }
 
-    public function serveMedia(int $id): BinaryFileResponse
+    public function serveMedia(string $path): BinaryFileResponse
     {
+        // Decode the path in case it contains URL-encoded characters
+        $path = urldecode($path);
+
+        // Find media by path (disk is no longer stored, always uses config)
         $media = MediaModel::where('source', 'local')
-            ->findOrFail($id);
+            ->where('path', $path)
+            ->firstOrFail();
 
         $fileReference = $media->loadFileReference();
         if (!$fileReference || !MediaStorageHelper::doesFileExist($fileReference->disk, $fileReference->getStoragePath())) {
             abort(404, 'Media file not found');
         }
 
-        $path = MediaStorageHelper::getPhysicalPath($fileReference);
+        $physicalPath = MediaStorageHelper::getPhysicalPath($fileReference);
         $mimeType = MediaUtilities::getMimeType($fileReference->extension, 'image/jpg');
 
         $cacheMinutes = config('media.cache_minutes');
 
-        return response()->file($path, [
+        return response()->file($physicalPath, [
             'Content-Type' => $mimeType,
             'Cache-Control' => "public, max-age=" . ($cacheMinutes * 60),
         ]);
@@ -54,11 +59,11 @@ class GetMediaService implements GetMediaServiceInterface, AppliesSearchCriteria
             ->findOrFail($id);
 
         $fileReference = $media->loadThumbnailFileReference();
-        if (!$fileReference || !MediaStorageHelper::doesFileExist($fileReference->disk, $fileReference->getStoragePath())) {
+        if (!$fileReference || !MediaStorageHelper::doesFileExist($fileReference->disk, $fileReference->getThumbnailStoragePath())) {
             abort(404, 'Thumbnail not found');
         }
 
-        $path = MediaStorageHelper::getPhysicalPath($fileReference);
+        $path = MediaStorageHelper::getPhysicalPath($fileReference, isThumbnail: true);
         $mimeType = MediaUtilities::getMimeType($fileReference->extension, 'image/jpg');
 
         $cacheMinutes = config('media.cache_minutes');

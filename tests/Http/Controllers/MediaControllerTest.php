@@ -18,6 +18,7 @@ class MediaControllerTest extends TestCase
         parent::setUp();
         config(['media.storage_path' => 'media/{path}']);
         config(['media.disk' => 'public']);
+        config(['media.management_middleware' => []]); // Disable auth for tests
         Storage::fake('public');
     }
 
@@ -257,6 +258,7 @@ class MediaControllerTest extends TestCase
         $media = MediaResource::factory()->create([
             'display_name' => 'Test Media',
             'type' => 'image',
+            'source' => 'local',
         ]);
 
         $response = $this->getJson("/api/media/{$media->id}");
@@ -266,8 +268,22 @@ class MediaControllerTest extends TestCase
             ->assertJson([
                 'data' => [
                     'id' => $media->id,
-                    'display_name' => 'Test Media',
+                    'name' => 'Test Media',
+                    'type' => 'image',
+                    'source' => 'local',
                 ],
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'name',
+                    'description',
+                    'date',
+                    'type',
+                    'source',
+                    'thumbnail_url',
+                    'media_url',
+                ]
             ]);
     }
 
@@ -377,6 +393,7 @@ class MediaControllerTest extends TestCase
     public function it_serves_local_media_file()
     {
         config(['media.storage_path' => 'media/{path}']);
+        config(['media.disk' => 'public']);
 
         $testContent = 'test image content';
         Storage::disk('public')->put('media/test/image.jpg', $testContent);
@@ -384,11 +401,11 @@ class MediaControllerTest extends TestCase
         $media = MediaResource::factory()->create([
             'source' => 'local',
             'path' => 'test/image.jpg',
-            'disk' => 'public',
-            'type' => 'image',
+            'type' => 'image'
         ]);
 
-        $response = $this->get("/media/{$media->id}");
+        // Now use path instead of ID
+        $response = $this->get("/media/{$media->path}");
 
         $response->assertOk();
         $this->assertNotEmpty($response->headers->get('Content-Type'));
@@ -397,7 +414,9 @@ class MediaControllerTest extends TestCase
     /** @test */
     public function it_returns_404_for_nonexistent_media_file()
     {
-        $response = $this->get('/media/1');
+        config(['media.disk' => 'public']);
+
+        $response = $this->get('/media/nonexistent/path.jpg');
 
         $response->assertNotFound();
     }
@@ -406,16 +425,15 @@ class MediaControllerTest extends TestCase
     public function it_serves_thumbnail()
     {
         config(['media.storage_path' => 'media/{path}']);
+        config(['media.thumbnails.storage_path' => 'media/thumbnails/{path}']);
 
         $testContent = 'test thumbnail content';
-        Storage::disk('public')->put('media/test/image_thumb.jpg', $testContent);
+        Storage::disk('public')->put('media/thumbnails/test/image_thumb.jpg', $testContent);
 
         $media = MediaResource::factory()->create([
             'source' => 'local',
             'path' => 'test/image.jpg',
-            'disk' => 'public',
             'thumbnail_path' => 'test/image_thumb.jpg',
-            'thumbnail_disk' => 'public',
             'type' => 'image',
         ]);
 
@@ -430,8 +448,7 @@ class MediaControllerTest extends TestCase
         $media = MediaResource::factory()->create([
             'source' => 'local',
             'path' => 'test/image.jpg',
-            'disk' => 'public',
-            'type' => 'image',
+            'type' => 'image'
         ]);
 
         $response = $this->get("/media/thumbnails/{$media->id}");

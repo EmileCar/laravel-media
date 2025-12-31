@@ -15,7 +15,6 @@ trait BuildsCommonMediaData
     protected ?string $thumbnailUrl = null;
     protected ?string $thumbnailPath = null;
     protected mixed $thumbnailFile = null;
-    protected ?string $disk = null;
     protected ?string $directory = null;
     protected ?array $processingConfig = null;
 
@@ -83,15 +82,6 @@ trait BuildsCommonMediaData
     public function withThumbnailFile($file): self
     {
         $this->thumbnailFile = $file;
-        return $this;
-    }
-
-    /**
-     * Override the default disk
-     */
-    public function useDisk(string $disk): self
-    {
-        $this->disk = $disk;
         return $this;
     }
 
