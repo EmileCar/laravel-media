@@ -1,0 +1,23 @@
+name: Branch Protection Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check:
+    name: Required checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check tests status
+        run: echo "This workflow ensures all tests pass before merging to main"
+
+      - name: Wait for tests
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          running-workflow-name: 'Required checks'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10

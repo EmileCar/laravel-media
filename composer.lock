@@ -137,20 +137,20 @@
         },
         {
             "name": "carone/laravel-common",
-            "version": "v1.3",
+            "version": "v1.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/EmileCar/laravel-common.git",
-                "reference": "4cee66befadb83f24903b638b2e6715b4f6e41ed"
+                "reference": "b6dee8ffa71dbec9703f365617206d7f64089005"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/EmileCar/laravel-common/zipball/4cee66befadb83f24903b638b2e6715b4f6e41ed",
-                "reference": "4cee66befadb83f24903b638b2e6715b4f6e41ed",
+                "url": "https://api.github.com/repos/EmileCar/laravel-common/zipball/b6dee8ffa71dbec9703f365617206d7f64089005",
+                "reference": "b6dee8ffa71dbec9703f365617206d7f64089005",
                 "shasum": ""
             },
             "require": {
-                "illuminate/database": "^12.35",
+                "illuminate/database": "^12.0",
                 "php": "^8.2"
             },
             "require-dev": {
@@ -174,9 +174,9 @@
             ],
             "support": {
                 "issues": "https://github.com/EmileCar/laravel-common/issues",
-                "source": "https://github.com/EmileCar/laravel-common/tree/v1.3"
+                "source": "https://github.com/EmileCar/laravel-common/tree/v1.4"
             },
-            "time": "2025-10-27T14:12:33+00:00"
+            "time": "2025-12-31T14:04:59+00:00"
         },
         {
             "name": "dflydev/dot-access-data",

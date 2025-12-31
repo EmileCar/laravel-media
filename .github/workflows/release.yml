@@ -1,0 +1,90 @@
+name: Create Release
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+
+jobs:
+  release:
+    name: Create Tag and Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version from composer.json
+        id: get_version
+        run: |
+          VERSION=$(jq -r '.version // empty' composer.json)
+          if [ -z "$VERSION" ]; then
+            echo "No version found in composer.json. Please add a 'version' field."
+            echo "Example: \"version\": \"1.0.0\""
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version detected: $VERSION"
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          if git rev-parse "v${{ steps.get_version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag v${{ steps.get_version.outputs.version }} already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Tag v${{ steps.get_version.outputs.version }} does not exist yet"
+          fi
+
+      - name: Create and push tag
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag -a "v${{ steps.get_version.outputs.version }}" -m "Release version ${{ steps.get_version.outputs.version }}"
+          git push origin "v${{ steps.get_version.outputs.version }}"
+
+      - name: Create GitHub Release
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          release_name: v${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false
+          body: |
+            Release version ${{ steps.get_version.outputs.version }}
+
+            ## Installation
+            ```bash
+            composer require carone/laravel-media:^${{ steps.get_version.outputs.version }}
+            ```
+
+            See the [README](https://github.com/${{ github.repository }}/blob/main/README.md) for full documentation.
+
+      - name: Notify Packagist
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          if [ -n "${{ secrets.PACKAGIST_TOKEN }}" ]; then
+            curl -X POST "https://packagist.org/api/update-package?username=${{ secrets.PACKAGIST_USERNAME }}&apiToken=${{ secrets.PACKAGIST_TOKEN }}"
+            echo "Packagist notified successfully"
+          else
+            echo "PACKAGIST_TOKEN not set. Skipping Packagist notification."
+            echo "Note: Packagist should auto-update from GitHub webhooks within ~10 minutes."
+          fi
+
+      - name: Tag already exists
+        if: steps.check_tag.outputs.exists == 'true'
+        run: |
+          echo "Tag v${{ steps.get_version.outputs.version }} already exists. Skipping release creation."
+          echo "To create a new release, update the version in composer.json"
