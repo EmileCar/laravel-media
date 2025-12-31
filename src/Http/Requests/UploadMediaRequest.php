@@ -23,6 +23,8 @@ class UploadMediaRequest extends FormRequest
             'description' => 'nullable|string|max:1000',
             'directory' => 'nullable|string|max:500',
             'generate_thumbnail' => 'nullable|boolean',
+            'tags' => 'nullable|array|max:20',
+            'tags.*' => 'required|string|max:50',
         ];
     }
 }

@@ -36,6 +36,19 @@ class MediaController extends Controller
     }
 
     /**
+     * Get all available tags
+     */
+    public function getTags(): JsonResponse
+    {
+        if (!config('media.tags.enabled', false)) {
+            return response()->json(['error' => 'Tags functionality is disabled'], 403);
+        }
+
+        $tags = $this->getMediaService->getAllTags();
+        return response()->json(['tags' => $tags]);
+    }
+
+    /**
      * Get media by type with pagination
      */
     public function getMediaByType(Request $request, string $type): JsonResponse
@@ -85,12 +98,16 @@ class MediaController extends Controller
         try {
             $query = $validated['q'];
             $type = $validated['type'] ?? null;
+            $tags = $validated['tags'] ?? [];
             $limit = $validated['limit'] ?? 20;
             $offset = $validated['offset'] ?? 0;
 
             $filters = [];
             if ($type) {
                 $filters['type'] = [$type];
+            }
+            if (!empty($tags)) {
+                $filters['tags'] = $tags;
             }
 
             $criteria = new SearchCriteria(
@@ -140,6 +157,7 @@ class MediaController extends Controller
                     meta: [],
                     directory: $validated['directory'] ?? null,
                     generateThumbnail: $validated['generate_thumbnail'] ?? false,
+                    tags: $validated['tags'] ?? [],
                 );
             } else {
                 $data = new StoreExternalMediaData(
@@ -149,15 +167,21 @@ class MediaController extends Controller
                     description: $validated['description'] ?? null,
                     date: now(),
                     meta: [],
+                    tags: $validated['tags'] ?? [],
                 );
             }
 
             $media = $this->storeMediaService->store($data);
 
+            // Reload media with tags if enabled
+            if (config('media.tags.enabled', false)) {
+                $media->load('tags');
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Media uploaded successfully',
-                'data' => $media
+                'data' => $this->transformMediaForPublicApi($media)
             ], 201);
 
         } catch (\InvalidArgumentException $e) {
@@ -304,7 +328,7 @@ class MediaController extends Controller
             $thumbnailUrl = url("/media/thumbnails/{$media->id}");
         }
 
-        return [
+        $result = [
             'id' => $media->id,
             'name' => $media->display_name,
             'description' => $media->description,
@@ -314,5 +338,12 @@ class MediaController extends Controller
             'thumbnail_url' => $thumbnailUrl,
             'media_url' => $mediaUrl,
         ];
+
+        // Include tags if enabled and loaded
+        if (config('media.tags.enabled', false) && $media->relationLoaded('tags')) {
+            $result['tags'] = $media->tags->pluck('name')->toArray();
+        }
+
+        return $result;
     }
 }

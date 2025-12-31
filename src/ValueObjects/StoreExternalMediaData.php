@@ -19,6 +19,7 @@ final class StoreExternalMediaData extends StoreMediaData
         public readonly ?string $thumbnailUrl = null,
         public readonly ?string $thumbnailPath = null,
         public readonly mixed $thumbnailFile = null,
+        public readonly array $tags = [],
     ) {
         parent::__construct($type, $name, $description, $date, $meta);
     }
@@ -30,6 +31,7 @@ final class StoreExternalMediaData extends StoreMediaData
             'thumbnail_url' => $this->thumbnailUrl,
             'thumbnail_path' => $this->thumbnailPath,
             'thumbnail_file' => $this->thumbnailFile,
+            'tags' => $this->tags,
         ]);
     }
 
@@ -40,6 +42,8 @@ final class StoreExternalMediaData extends StoreMediaData
             'thumbnail_url' => 'nullable|url|max:1000',
             'thumbnail_path' => 'nullable|string|max:500',
             'thumbnail_file' => 'nullable|file',
+            'tags' => 'array',
+            'tags.*' => 'string|max:50',
         ]);
     }
 
