@@ -57,8 +57,13 @@ class MediaController extends Controller
 
             $result = $this->getMediaService->search($criteria, $offset, $limit);
 
+            $transformedData = array_map(
+                fn($media) => $this->transformMediaForPublicApi($media),
+                $result->items()
+            );
+
             return response()->json([
-                'data' => $result->items(),
+                'data' => $transformedData,
                 'total' => $result->total(),
                 'limit' => $limit,
                 'offset' => $offset,
@@ -95,8 +100,14 @@ class MediaController extends Controller
 
             $result = $this->getMediaService->search($criteria, $offset, $limit);
 
+            // Transform to public API format
+            $transformedData = array_map(
+                fn($media) => $this->transformMediaForPublicApi($media),
+                $result->items()
+            );
+
             return response()->json([
-                'data' => $result->items(),
+                'data' => $transformedData,
                 'total' => $result->total(),
                 'limit' => $limit,
                 'offset' => $offset,
@@ -164,13 +175,14 @@ class MediaController extends Controller
     }
 
     /**
-     * Get media by ID
+     * Get media by ID (protected endpoint - returns public API format)
      */
     public function getMediaById(int $id): JsonResponse
     {
         try {
             $media = $this->getMediaService->getResourceById($id);
-            return response()->json(['data' => $media]);
+            $transformedData = $this->transformMediaForPublicApi($media);
+            return response()->json(['data' => $transformedData]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json(['error' => 'Media not found'], 404);
         } catch (\Exception $e) {
@@ -234,12 +246,18 @@ class MediaController extends Controller
     }
 
     /**
-     * Serve media file
+     * Serve media file by path
      */
-    public function getMedia(int $id): BinaryFileResponse
+    public function getMedia(string $path = null): BinaryFileResponse
     {
         try {
-            return $this->getMediaService->serveMedia($id);
+            // Get the full path from the request URI
+            $fullPath = request()->route('path');
+            if (!$fullPath) {
+                abort(404, 'Media path not provided');
+            }
+
+            return $this->getMediaService->serveMedia($fullPath);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             abort(404, 'Media not found');
         } catch (\Exception $e) {
@@ -261,5 +279,40 @@ class MediaController extends Controller
             logger()->error('Error serving thumbnail: ' . $e->getMessage());
             abort(404, 'Thumbnail not found');
         }
+    }
+
+    /**
+     * Transform media resource to public API format
+     * Returns only essential fields for public consumption
+     */
+    private function transformMediaForPublicApi($media): array
+    {
+        // Generate media URL
+        $mediaUrl = match ($media->source) {
+            'local' => url("/media/{$media->path}"),
+            'external' => $media->url,
+            default => null,
+        };
+
+        // Generate thumbnail URL
+        $thumbnailUrl = null;
+        if (!empty($media->thumbnail_url)) {
+            // External thumbnail URL
+            $thumbnailUrl = $media->thumbnail_url;
+        } elseif (!empty($media->thumbnail_path)) {
+            // Local thumbnail
+            $thumbnailUrl = url("/media/thumbnails/{$media->id}");
+        }
+
+        return [
+            'id' => $media->id,
+            'name' => $media->display_name,
+            'description' => $media->description,
+            'date' => $media->date?->toDateString(),
+            'type' => $media->type,
+            'source' => $media->source,
+            'thumbnail_url' => $thumbnailUrl,
+            'media_url' => $mediaUrl,
+        ];
     }
 }

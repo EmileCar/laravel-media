@@ -130,8 +130,7 @@ class MediaModelTest extends TestCase
             'display_name' => 'created-file.jpg',
             'type' => 'image',
             'source' => 'local',
-            'path' => '/uploads/created-file.jpg',
-            'disk' => 'local'
+            'path' => '/uploads/created-file.jpg'
         ];
 
         $model = MediaModel::create($attributes);
@@ -175,8 +174,7 @@ class MediaModelTest extends TestCase
             'display_name' => 'findable-file.jpg',
             'type' => 'image',
             'source' => 'local',
-            'path' => '/uploads/findable-file.jpg',
-            'disk' => 'local'
+            'path' => '/uploads/findable-file.jpg'
         ]);
 
         $foundMedia = MediaModel::findOrFail($media->id);
@@ -200,16 +198,14 @@ class MediaModelTest extends TestCase
             'display_name' => 'image-file.jpg',
             'type' => 'image',
             'source' => 'local',
-            'path' => '/uploads/image-file.jpg',
-            'disk' => 'local'
+            'path' => '/uploads/image-file.jpg'
         ]);
 
         MediaResource::create([
             'display_name' => 'video-file.mp4',
             'type' => 'video',
             'source' => 'local',
-            'path' => '/uploads/video-file.mp4',
-            'disk' => 'local'
+            'path' => '/uploads/video-file.mp4'
         ]);
 
         $query = MediaModel::where('type', 'image');
@@ -225,8 +221,7 @@ class MediaModelTest extends TestCase
             'display_name' => 'local-image.jpg',
             'type' => 'image',
             'source' => 'local',
-            'path' => '/uploads/local-image.jpg',
-            'disk' => 'local'
+            'path' => '/uploads/local-image.jpg'
         ]);
 
         MediaResource::create([
@@ -336,8 +331,7 @@ class MediaModelTest extends TestCase
             'display_name' => 'custom-test.jpg',
             'type' => 'image',
             'source' => 'local',
-            'path' => '/uploads/custom-test.jpg',
-            'disk' => 'local'
+            'path' => '/uploads/custom-test.jpg'
         ]);
         $this->assertInstanceOf($customModelClass, $createdModel);
         $this->assertTrue($createdModel->exists);

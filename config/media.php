@@ -140,6 +140,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Management Endpoints Middleware
+    |--------------------------------------------------------------------------
+    | Define which middleware should protect media management endpoints
+    | (upload, delete, bulk delete). Set to an empty array for no protection.
+    | Public endpoints (search, serve media) are always accessible.
+    |
+    | Examples:
+    |   ['auth'] - Require authentication
+    |   ['auth', 'admin'] - Require authentication and admin role
+    |   ['auth:sanctum'] - Use Sanctum authentication
+    |   [] - No protection (not recommended for production)
+    |---------------------------------------------------------------------------
+    */
+    'management_middleware' => ['auth'],
+
+    /*
+    |--------------------------------------------------------------------------
     | Image Processing Configuration
     |--------------------------------------------------------------------------
     | Configure how images should be processed after upload.

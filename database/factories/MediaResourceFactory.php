@@ -15,7 +15,6 @@ class MediaResourceFactory extends Factory
             'type' => $this->faker->randomElement(['image', 'video', 'audio', 'document']),
             'source' => $this->faker->randomElement(['local', 'external']),
             'path' => $this->faker->filePath(),
-            'disk' => 'public',
             'url' => $this->faker->optional()->url(),
             'display_name' => $this->faker->words(3, true),
             'description' => $this->faker->optional()->sentence(),
@@ -27,7 +26,6 @@ class MediaResourceFactory extends Factory
             ],
             'thumbnail_path' => $this->faker->optional()->filePath(),
             'thumbnail_url' => $this->faker->optional()->url(),
-            'thumbnail_disk' => $this->faker->optional()->randomElement(['public', 'local']),
         ];
     }
 
@@ -47,7 +45,6 @@ class MediaResourceFactory extends Factory
             return [
                 'source' => 'external',
                 'path' => null,
-                'disk' => null,
                 'url' => $this->faker->url(),
             ];
         });

@@ -126,7 +126,41 @@ Each type can be individually enabled/disabled in the configuration.
 
 ## API Response Format
 
-### Single Media Resource
+### Public Search Endpoints (GET /api/media/search, GET /api/media/type/{type})
+
+These public endpoints return a minimal, SEO-friendly format:
+
+```json
+{
+    "data": [
+        {
+            "id": 1,
+            "name": "My Image",
+            "description": "A beautiful landscape photo",
+            "date": "2025-01-15",
+            "type": "image",
+            "thumbnail_url": "https://example.com/media/thumbnails/1",
+            "media_url": "https://example.com/media/images/photo.jpg"
+        }
+    ],
+    "total": 50,
+    "limit": 20,
+    "offset": 0
+}
+```
+
+**Public Response Fields:**
+- `id` - Media resource ID (for detail pages, routing)
+- `name` - Display name
+- `description` - Optional description (for alt text, tooltips)
+- `date` - ISO date string
+- `type` - Media type (image, video, audio, document)
+- `thumbnail_url` - Thumbnail URL (null if no thumbnail)
+- `media_url` - Direct URL to media file
+
+### Single Media Resource (GET /api/media/{id})
+
+The detail endpoint returns complete information:
 
 ```php
 {
@@ -152,25 +186,97 @@ Each type can be individually enabled/disabled in the configuration.
 
 ### Paginated Results
 
-```php
+Public browsing and search endpoints return simplified data:
+
+```json
 {
-    "data": [...], // Array of media resources
-    "total": 50,
-    "offset": 0,
-    "limit": 20
+    "current_page": 1,
+    "data": [
+        {
+            "id": 1,
+            "name": "example.jpg",
+            "description": "Example image",
+            "date": "2024-01-01",
+            "type": "image",
+            "thumbnail_url": "http://localhost/media/thumbnails/1",
+            "media_url": "http://localhost/media/uploads/2024/01/example.jpg"
+        }
+    ],
+    "per_page": 15,
+    "total": 100
+}
+```
+
+Management endpoints return complete resource data:
+
+```json
+{
+    "id": 1,
+    "name": "example.jpg",
+    "description": "Example image",
+    "date": "2024-01-01",
+    "type": "image",
+    "file_extension": "jpg",
+    "file_size": 1024000,
+    "thumbnail_id": 1234,
+    "metadata": {
+        "dimensions": {"width": 1920, "height": 1080},
+        "exif": {...}
+    },
+    "created_at": "2024-01-01T12:00:00.000000Z",
+    "updated_at": "2024-01-01T12:00:00.000000Z"
 }
 ```
 
 ### Search Results
 
-```php
+```json
 {
-    "data": [...], // Array of media resources
+    "data": [...], // Array of media resources (format depends on endpoint)
     "total": 10,
     "offset": 0,
     "limit": 20,
     "query": "landscape",
     "type": "image"
+}
+```
+
+## Media Serving
+
+### Path-Based URLs
+
+Media files are served using clean, SEO-friendly path-based URLs:
+
+```
+GET /media/{path}
+
+Examples:
+- /media/images/2024/photo.jpg
+- /media/documents/reports/annual-report.pdf
+- /media/videos/demo.mp4
+```
+
+The path corresponds directly to the file's location in storage, making URLs predictable and clean.
+
+### Thumbnails
+
+Thumbnails are served by ID (since they can be on different disks):
+
+```
+GET /media/thumbnails/{id}
+
+Example:
+- /media/thumbnails/1
+```
+
+### URL Generation
+
+The public search endpoints automatically generate these URLs:
+
+```json
+{
+    "media_url": "https://example.com/media/images/photo.jpg",
+    "thumbnail_url": "https://example.com/media/thumbnails/1"
 }
 ```
 
@@ -407,7 +513,7 @@ public function uploadMedia(Request $request)
         'file' => $request->file('file'),
         'name' => $request->input('name'),
     ]);
-    
+
     return response()->json(['success' => true, 'media' => $media]);
 }
 ```
@@ -431,10 +537,46 @@ Configure validation rules per media type:
 ### Storage Configuration
 
 ```php
-'disk' => env('DEFAULT_MEDIA_STORAGE_DISK', 'public'),
-'storage_path' => 'media/{type}',
-'generate_thumbnails' => true,
+'disk' => env('DEFAULT_MEDIA_STORAGE_DISK', 'public'), // Main media files disk (not customizable per upload)
+'storage_path' => 'media/{path}',
 'enabled_types' => ['image', 'video', 'audio', 'document'],
+
+// Thumbnail configuration
+'thumbnails' => [
+    'enabled' => true,
+    'disk' => null, // If null, uses same disk as media. Can be customized per upload.
+    'storage_path' => 'media/thumbnails/{path}',
+],
+```
+
+**Important:** The main media disk is configured globally and cannot be overridden per upload. This ensures consistent, path-based media URLs. Thumbnails can still use custom disks.
+
+### Route Protection
+
+The package provides separate public and protected routes:
+
+**Public Routes** (no authentication required):
+- `GET /api/media/types` - Get enabled media types
+- `GET /api/media/type/{type}` - Browse media by type
+- `GET /api/media/search` - Search media
+- `GET /api/media/{id}` - Get media details
+- `GET /media/{path}` - Serve media files
+- `GET /media/thumbnails/{id}` - Serve thumbnails
+
+**Protected Routes** (authentication required by default):
+- `POST /api/media/upload` - Upload media
+- `DELETE /api/media/{id}` - Delete media
+- `DELETE /api/media/bulk` - Bulk delete media
+
+Configure protection in `config/media.php`:
+
+```php
+'management_middleware' => ['auth'], // Default: require authentication
+
+// Examples:
+'management_middleware' => ['auth:sanctum'], // Use Sanctum
+'management_middleware' => ['auth', 'admin'], // Require admin role
+'management_middleware' => [], // No protection (not recommended for production)
 ```
 
 ### Error Handling

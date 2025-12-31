@@ -145,7 +145,6 @@ class StoreMediaDataTest extends TestCase
         $this->assertArrayHasKey('file', $rules);
         $this->assertArrayHasKey('file_name', $rules);
         $this->assertArrayHasKey('directory', $rules);
-        $this->assertArrayHasKey('disk', $rules);
 
         $this->assertSame('required|file', $rules['file']);
         $this->assertSame('nullable|string|max:255', $rules['file_name']);

@@ -27,13 +27,13 @@ interface GetMediaServiceInterface
     /**
      * Serve media file by path
      *
-     * @param int $id
+     * @param string $path
      * @return BinaryFileResponse
      */
-    public function serveMedia(int $id): BinaryFileResponse;
+    public function serveMedia(string $path): BinaryFileResponse;
 
     /**
-     * Serve thumbnail file by media path
+     * Serve thumbnail file by media ID
      *
      * @param int $id
      * @return BinaryFileResponse

@@ -27,8 +27,7 @@ class DeleteMediaServiceTest extends TestCase
         $media = MediaResource::factory()->create([
             'type' => 'image',
             'source' => 'local',
-            'path' => 'test/image.jpg',
-            'disk' => 'public'
+            'path' => 'test/image.jpg'
         ]);
 
         // Create a fake file to ensure deletion works
@@ -51,13 +50,14 @@ class DeleteMediaServiceTest extends TestCase
         $media = MediaResource::factory()->create([
             'type' => 'image',
             'source' => 'local',
-            'path' => 'test/nonexistent.jpg',
-            'disk' => 'nonexistent_disk'
+            'path' => 'test/nonexistent.jpg'
         ]);
 
-        // This should handle the storage exception but still delete the record
-        $this->expectException(\Exception::class);
-        $this->service->delete($media->id);
+        // Delete should succeed even if file doesn't exist (gracefully handles missing files)
+        $result = $this->service->delete($media->id);
+
+        $this->assertTrue($result);
+        $this->assertDatabaseMissing('media_resources', ['id' => $media->id]);
     }
 
     public function test_deleteMultiple_processes_all_ids()
@@ -144,20 +144,5 @@ class DeleteMediaServiceTest extends TestCase
 
         $this->assertTrue($result);
         $this->assertDatabaseMissing('media_resources', ['id' => $media->id]);
-    }
-
-    public function test_delete_logs_errors_on_exception()
-    {
-        // Create media with invalid disk configuration to trigger exception
-        $media = MediaResource::factory()->create([
-            'type' => 'image',
-            'source' => 'local',
-            'path' => 'test/image.jpg',
-            'disk' => 'invalid_disk'
-        ]);
-
-        $this->expectException(\Exception::class);
-
-        $this->service->delete($media->id);
     }
 }

@@ -62,6 +62,7 @@ class GetMediaServiceTest extends TestCase
     {
         // Set config explicitly before test
         config(['media.storage_path' => 'media/{path}']);
+        config(['media.disk' => 'public']);
 
         // Create a real test file on fake disk
         $testContent = 'test image content';
@@ -74,47 +75,48 @@ class GetMediaServiceTest extends TestCase
         $media = MediaResource::factory()->create([
             'source' => 'local',
             'path' => 'test/image.jpg',
-            'disk' => 'public',
             'meta' => ['original_name' => 'image.jpg']
         ]);
 
         config(['media.cache_minutes' => 60]);
 
-        $result = $this->service->serveMedia($media->id);
+        // Serve by path instead of ID
+        $result = $this->service->serveMedia('test/image.jpg');
 
         $this->assertInstanceOf(BinaryFileResponse::class, $result);
     }
 
     public function test_serveMedia_aborts_404_when_file_not_exists()
     {
+        config(['media.disk' => 'public']);
+
         // Create media resource without creating the actual file
         $media = MediaResource::factory()->create([
             'source' => 'local',
-            'path' => 'test/missing.jpg',
-            'disk' => 'public',
+            'path' => 'test/missing.jpg'
         ]);
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class);
 
-        $this->service->serveMedia($media->id);
+        $this->service->serveMedia('test/missing.jpg');
     }
 
     public function test_serveThumbnail_returns_binary_file_response()
     {
         // Set config explicitly before test
+        config(['media.disk' => 'public']);
         config(['media.storage_path' => 'media/{path}']);
+        config(['media.thumbnails.storage_path' => 'media/thumbnails/{path}']);
 
-        // Create a real test thumbnail file
+        // Create a real test thumbnail file on the configured disk
         $testContent = 'test thumbnail content';
-        Storage::disk('public')->put('media/test/image_thumb.jpg', $testContent);
+        Storage::disk('public')->put('media/thumbnails/test/image_thumb.jpg', $testContent);
 
         // Create media resource with thumbnail
         $media = MediaResource::factory()->create([
             'source' => 'local',
             'path' => 'test/image.jpg',
-            'disk' => 'public',
             'thumbnail_path' => 'test/image_thumb.jpg',
-            'thumbnail_disk' => 'public',
         ]);
 
         $result = $this->service->serveThumbnail($media->id);

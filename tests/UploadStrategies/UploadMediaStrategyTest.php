@@ -46,7 +46,6 @@ class UploadMediaStrategyTest extends TestCase
         $this->assertEquals(MediaType::VIDEO->value, $result->type);
         $this->assertEquals('local', $result->source);
         $this->assertNotNull($result->path);
-        $this->assertEquals('public', $result->disk);
         $this->assertArrayHasKey('original_name', $result->meta);
         $this->assertArrayHasKey('size', $result->meta);
         $this->assertArrayHasKey('mime_type', $result->meta);
@@ -133,6 +132,7 @@ class UploadMediaStrategyTest extends TestCase
     public function test_storeLocalFile_with_custom_disk()
     {
         config(['media.storage_path' => 'media/{path}']);
+        config(['media.disk' => 'custom']);
         Storage::fake('custom');
 
         $file = UploadedFile::fake()->create('test.txt', 100, 'text/plain');
@@ -144,15 +144,15 @@ class UploadMediaStrategyTest extends TestCase
             name: 'Test File',
             description: 'A test file',
             date: now(),
-            directory: 'documents',
-            disk: 'custom'
+            directory: 'documents'
         );
 
         $strategy = new UploadMediaStrategy($data);
         $result = $strategy->storeLocalFile($data);
 
-        $this->assertEquals('custom', $result->disk);
+        // Disk comes from config, not persisted in database
         $fileRef = $result->loadFileReference();
+        $this->assertEquals('custom', $fileRef->disk);
         $this->assertTrue(Storage::disk('custom')->exists($fileRef->getStoragePath()));
     }
 
@@ -242,8 +242,7 @@ class UploadMediaStrategyTest extends TestCase
         $media = MediaResource::factory()->create([
             'type' => 'video',
             'source' => 'local',
-            'path' => 'nonexistent/file.mp4',
-            'disk' => 'public'
+            'path' => 'nonexistent/file.mp4'
         ]);
 
         $data = new StoreLocalMediaData(

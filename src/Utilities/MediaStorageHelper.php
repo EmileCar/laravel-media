@@ -9,9 +9,12 @@ use Illuminate\Support\Str;
 class MediaStorageHelper
 {
 
-    public static function getPhysicalPath(MediaFileReference $fileReference): string
+    public static function getPhysicalPath(MediaFileReference $fileReference, bool $isThumbnail = false): string
     {
-        return Storage::disk($fileReference->disk)->path($fileReference->getStoragePath());
+        $storagePath = $isThumbnail
+            ? $fileReference->getThumbnailStoragePath()
+            : $fileReference->getStoragePath();
+        return Storage::disk($fileReference->disk)->path($storagePath);
     }
 
     public static function storeFile(MediaFileReference $fileReference, string $data): void
