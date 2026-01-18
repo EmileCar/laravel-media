@@ -73,6 +73,11 @@ class MediaAdminController extends Controller
         $perPage = min((int) $request->get('per_page', 24), 100);
         $media = $query->with('tags')->paginate($perPage);
 
+        // Transform each media item to include URLs
+        $media->getCollection()->transform(function($item) {
+            return $this->transformMediaForAdmin($item);
+        });
+
         return response()->json($media);
     }
 
@@ -159,5 +164,61 @@ class MediaAdminController extends Controller
         }
 
         return response()->json($stats);
+    }
+
+    /**
+     * Transform media resource for admin panel
+     * Returns all fields needed for admin operations plus computed URLs
+     */
+    private function transformMediaForAdmin($media): array
+    {
+        // Generate media URL
+        $mediaUrl = match ($media->source) {
+            'local' => url("/media/{$media->path}"),
+            'external' => $media->url,
+            default => null,
+        };
+
+        // Generate thumbnail URL
+        $thumbnailUrl = null;
+        if (!empty($media->thumbnail_url)) {
+            // External thumbnail URL
+            $thumbnailUrl = $media->thumbnail_url;
+        } elseif (!empty($media->thumbnail_path)) {
+            // Local thumbnail
+            $thumbnailUrl = url("/media/thumbnails/{$media->id}");
+        }
+
+        $result = [
+            'id' => $media->id,
+            'name' => $media->name,
+            'display_name' => $media->display_name ?? $media->name,
+            'description' => $media->description,
+            'date' => $media->date?->toDateString(),
+            'type' => $media->type,
+            'source' => $media->source,
+            'file_name' => $media->file_name,
+            'file_size' => $media->file_size,
+            'path' => $media->path,
+            'url' => $media->url,
+            'thumbnail_path' => $media->thumbnail_path,
+            'thumbnail_url' => $thumbnailUrl,
+            'media_url' => $mediaUrl,
+            'created_at' => $media->created_at,
+            'updated_at' => $media->updated_at,
+        ];
+
+        // Include tags if enabled and loaded
+        if (config('media.tags.enabled', false) && $media->relationLoaded('tags')) {
+            $result['tags'] = $media->tags->map(function($tag) {
+                return [
+                    'id' => $tag->id,
+                    'name' => $tag->name,
+                    'slug' => $tag->slug,
+                ];
+            })->toArray();
+        }
+
+        return $result;
     }
 }

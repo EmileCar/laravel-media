@@ -99,24 +99,28 @@ class UploadMediaStrategy
     {
         $result = [];
 
-        // Priority 1: Explicit thumbnail URL
-        if (!empty($data->thumbnailUrl)) {
-            $result['url'] = $data->thumbnailUrl;
-            return $result;
-        }
-
-        // Priority 2: Explicit thumbnail path
-        if (!empty($data->thumbnailPath)) {
-            $result['path'] = $data->thumbnailPath;
-            return $result;
-        }
-
-        // Priority 3: Uploaded thumbnail file
+        // Priority 1: Uploaded thumbnail file (highest priority)
         if (!empty($data->thumbnailFile)) {
             $thumbnailRef = $this->storeThumbnailFile($data->thumbnailFile, $fileReference);
             if ($thumbnailRef) {
                 $result['path'] = $thumbnailRef->getPath();
             }
+            // Also store URL if provided as a fallback
+            if (!empty($data->thumbnailUrl)) {
+                $result['url'] = $data->thumbnailUrl;
+            }
+            return $result;
+        }
+
+        // Priority 2: Explicit thumbnail URL
+        if (!empty($data->thumbnailUrl)) {
+            $result['url'] = $data->thumbnailUrl;
+            return $result;
+        }
+
+        // Priority 3: Explicit thumbnail path
+        if (!empty($data->thumbnailPath)) {
+            $result['path'] = $data->thumbnailPath;
             return $result;
         }
 
@@ -138,19 +142,7 @@ class UploadMediaStrategy
     {
         $result = [];
 
-        // Priority 1: Explicit thumbnail URL
-        if (!empty($data->thumbnailUrl)) {
-            $result['url'] = $data->thumbnailUrl;
-            return $result;
-        }
-
-        // Priority 2: Explicit thumbnail path (less common for external media)
-        if (!empty($data->thumbnailPath)) {
-            $result['path'] = $data->thumbnailPath;
-            return $result;
-        }
-
-        // Priority 3: Uploaded thumbnail file
+        // Priority 1: Uploaded thumbnail file (highest priority)
         if (!empty($data->thumbnailFile)) {
             // Create a unique reference for the thumbnail
             $disk = config('media.thumbnails.disk') ?? config('media.disk');
@@ -159,9 +151,27 @@ class UploadMediaStrategy
             $extension = $data->thumbnailFile->getClientOriginalExtension();
 
             $thumbnailRef = new MediaFileReference($filename, $extension, $disk, $directory);
-            MediaStorageHelper::storeFile($thumbnailRef, file_get_contents($data->thumbnailFile->getRealPath()));
+            MediaStorageHelper::storeThumbnailFile($thumbnailRef, file_get_contents($data->thumbnailFile->getRealPath()));
 
             $result['path'] = $thumbnailRef->getPath();
+
+            // Also store URL if provided as a fallback
+            if (!empty($data->thumbnailUrl)) {
+                $result['url'] = $data->thumbnailUrl;
+            }
+            return $result;
+        }
+
+        // Priority 2: Explicit thumbnail URL
+        if (!empty($data->thumbnailUrl)) {
+            $result['url'] = $data->thumbnailUrl;
+            return $result;
+        }
+
+        // Priority 3: Explicit thumbnail path (less common for external media)
+        if (!empty($data->thumbnailPath)) {
+            $result['path'] = $data->thumbnailPath;
+            return $result;
         }
 
         return $result;
@@ -179,7 +189,7 @@ class UploadMediaStrategy
             $extension = $thumbnailFile->getClientOriginalExtension();
 
             $thumbnailRef = new MediaFileReference($filename, $extension, $disk, $directory);
-            MediaStorageHelper::storeFile($thumbnailRef, file_get_contents($thumbnailFile->getRealPath()));
+            MediaStorageHelper::storeThumbnailFile($thumbnailRef, file_get_contents($thumbnailFile->getRealPath()));
 
             return $thumbnailRef;
         } catch (\Exception $e) {

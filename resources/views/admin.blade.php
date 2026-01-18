@@ -718,7 +718,7 @@
                         <label>Source *</label>
                         <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
                             <label style="display: flex; align-items: center; cursor: pointer;">
-                                <input type="radio" name="uploadSource" value="local" checked onchange="switchUploadSource('local')" style="margin-right: 0.5rem;">
+                                <input type="radio" name="uploadSource" value="local" onchange="switchUploadSource('local')" style="margin-right: 0.5rem;">
                                 Local File
                             </label>
                             <label style="display: flex; align-items: center; cursor: pointer;">
@@ -727,9 +727,12 @@
                             </label>
                         </div>
                     </div>
+
+                    <!-- Form Fields Container - Hidden until source is selected -->
+                    <div id="uploadFormFields" style="display: none;">
                     <div class="form-group">
                         <label>Media Type *</label>
-                        <select class="form-control" id="uploadType" required>
+                        <select class="form-control" id="uploadType" required onchange="handleTypeChange()">
                             <option value="">Select type</option>
                             @foreach($enabledTypes as $type)
                             <option value="{{ $type }}">{{ ucfirst($type) }}</option>
@@ -760,10 +763,38 @@
                         </div>
                     </div>
                     @endif
+
+                    <!-- Auto-generate thumbnail for local images only -->
+                    <div class="form-group" id="autoThumbnailGroup" style="display: none;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="uploadAutoThumbnail" checked onchange="toggleAutoThumbnail()" style="margin-right: 0.5rem;">
+                            Auto-generate thumbnail
+                        </label>
+                    </div>
+
+                    <!-- Advanced Thumbnail Options - Always visible but collapsed -->
+                    <div class="form-group">
+                        <label style="cursor: pointer; display: flex; align-items: center; color: #3182ce;" onclick="toggleAdvancedThumbnail()">
+                            <span id="advancedThumbnailIcon" style="margin-right: 0.5rem;">▶</span>
+                            Advanced Thumbnail Options
+                        </label>
+                        <div id="advancedThumbnailContent" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f7fafc; border-radius: 0.375rem;">
+                            <div class="form-group" style="margin-bottom: 0.75rem;">
+                                <label>Upload Custom Thumbnail</label>
+                                <input type="file" class="form-control" id="uploadThumbnailFile" accept="image/*">
+                            </div>
+                            <div style="text-align: center; color: #718096; margin: 0.5rem 0;">OR</div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Thumbnail URL</label>
+                                <input type="url" class="form-control" id="uploadThumbnailUrl" placeholder="https://example.com/thumbnail.jpg">
+                            </div>
+                        </div>
+                    </div>
+                    </div> <!-- End of uploadFormFields container -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeUploadModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Upload</button>
+                    <button type="submit" class="btn btn-primary" id="uploadSubmitBtn" disabled>Upload</button>
                 </div>
             </form>
         </div>
@@ -967,7 +998,7 @@
                 <div class="media-card ${isSelected ? 'selected' : ''}" data-media-id="${media.id}">
                     <input type="checkbox" class="media-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleMediaSelection(${media.id})">
                     <div class="media-preview">
-                        ${media.type === 'image' ? `<img src="${thumbnailUrl}" alt="${media.name}">` : `
+                        ${thumbnailUrl ? `<img src="${thumbnailUrl}" alt="${media.name}">` : `
                             <div class="media-preview-icon">${getMediaIcon(media.type)}</div>
                         `}
                     </div>
@@ -994,7 +1025,7 @@
 
         function getMediaPreview(media) {
             if (media.thumbnail_url) return media.thumbnail_url;
-            if (media.type === 'image' && media.url) return media.url;
+            if (media.type === 'image' && media.media_url) return media.media_url;
             return '';
         }
 
@@ -1132,20 +1163,64 @@
         function openUploadModal() {
             document.getElementById('uploadModal').classList.add('active');
             uploadTags = [];
-            uploadSource = 'local';
-            switchUploadSource('local');
-            updateUploadTagsDisplay();
+            uploadSource = '';
+
+            // Hide form fields initially and reset form
+            document.getElementById('uploadFormFields').style.display = 'none';
+            document.getElementById('uploadForm').reset();
+            document.getElementById('uploadSubmitBtn').disabled = true;
+
+            // Uncheck all source radios
+            document.querySelectorAll('input[name="uploadSource"]').forEach(radio => {
+                radio.checked = false;
+            });
+
+            // Reset thumbnail options
+            document.getElementById('uploadAutoThumbnail').checked = true;
+            document.getElementById('autoThumbnailGroup').style.display = 'none';
+            document.getElementById('advancedThumbnailContent').style.display = 'none';
+            document.getElementById('advancedThumbnailIcon').textContent = '▶';
+            document.getElementById('uploadThumbnailFile').value = '';
+            document.getElementById('uploadThumbnailUrl').value = '';
+
+            // Disable advanced options when auto-thumbnail is checked
+            setAdvancedThumbnailState(false);
         }
 
         function closeUploadModal() {
             document.getElementById('uploadModal').classList.remove('active');
             document.getElementById('uploadForm').reset();
             uploadTags = [];
-            uploadSource = 'local';
+            uploadSource = '';
+
+            // Hide form fields
+            document.getElementById('uploadFormFields').style.display = 'none';
+            document.getElementById('uploadSubmitBtn').disabled = true;
+
+            // Reset thumbnail options
+            document.getElementById('autoThumbnailGroup').style.display = 'none';
+            document.getElementById('advancedThumbnailContent').style.display = 'none';
+            document.getElementById('advancedThumbnailIcon').textContent = '▶';
         }
 
         function switchUploadSource(source) {
             uploadSource = source;
+
+            // Show form fields with smooth transition
+            const formFields = document.getElementById('uploadFormFields');
+            const submitBtn = document.getElementById('uploadSubmitBtn');
+
+            if (formFields.style.display === 'none') {
+                formFields.style.display = 'block';
+                submitBtn.disabled = false;
+                // Optional: Add animation
+                formFields.style.opacity = '0';
+                setTimeout(() => {
+                    formFields.style.transition = 'opacity 0.3s ease-in-out';
+                    formFields.style.opacity = '1';
+                }, 10);
+            }
+
             const fileGroup = document.getElementById('uploadFileGroup');
             const urlGroup = document.getElementById('uploadUrlGroup');
             const fileInput = document.getElementById('uploadFile');
@@ -1161,6 +1236,64 @@
                 urlGroup.style.display = 'block';
                 fileInput.required = false;
                 urlInput.required = true;
+            }
+
+            // Update visibility based on media type
+            handleTypeChange();
+        }
+
+        function toggleAutoThumbnail() {
+            const autoChecked = document.getElementById('uploadAutoThumbnail').checked;
+
+            if (autoChecked) {
+                // Disable and collapse advanced options
+                setAdvancedThumbnailState(false);
+                document.getElementById('advancedThumbnailContent').style.display = 'none';
+                document.getElementById('advancedThumbnailIcon').textContent = '▶';
+            } else {
+                // Enable advanced options
+                setAdvancedThumbnailState(true);
+            }
+        }
+
+        function setAdvancedThumbnailState(enabled) {
+            const thumbnailFile = document.getElementById('uploadThumbnailFile');
+            const thumbnailUrl = document.getElementById('uploadThumbnailUrl');
+            const advancedLabel = document.querySelector('[onclick="toggleAdvancedThumbnail()"]');
+
+            if (enabled) {
+                thumbnailFile.disabled = false;
+                thumbnailUrl.disabled = false;
+                advancedLabel.style.opacity = '1';
+                advancedLabel.style.cursor = 'pointer';
+            } else {
+                thumbnailFile.disabled = true;
+                thumbnailUrl.disabled = true;
+                thumbnailFile.value = '';
+                thumbnailUrl.value = '';
+                advancedLabel.style.opacity = '0.5';
+                advancedLabel.style.cursor = 'not-allowed';
+            }
+        }
+
+        function toggleAdvancedThumbnail() {
+            // Don't allow toggle if auto-thumbnail is checked for local images
+            const autoThumbnailGroup = document.getElementById('autoThumbnailGroup');
+            const autoChecked = document.getElementById('uploadAutoThumbnail').checked;
+
+            if (autoThumbnailGroup.style.display === 'block' && autoChecked) {
+                return; // Disabled, don't toggle
+            }
+
+            const content = document.getElementById('advancedThumbnailContent');
+            const icon = document.getElementById('advancedThumbnailIcon');
+
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.textContent = '▼';
+            } else {
+                content.style.display = 'none';
+                icon.textContent = '▶';
             }
         }
 
@@ -1212,6 +1345,23 @@
                     return;
                 }
                 formData.append('file', fileInput.files[0]);
+
+                // Handle thumbnail options for local files
+                const autoThumbnail = document.getElementById('uploadAutoThumbnail').checked;
+                if (document.getElementById('uploadType').value === 'image') {
+                    formData.append('generate_thumbnail', autoThumbnail ? '1' : '0');
+                }
+
+                // Add custom thumbnail if provided
+                const thumbnailFile = document.getElementById('uploadThumbnailFile').files[0];
+                if (thumbnailFile) {
+                    formData.append('thumbnail_file', thumbnailFile);
+                }
+
+                const thumbnailUrl = document.getElementById('uploadThumbnailUrl').value;
+                if (thumbnailUrl) {
+                    formData.append('thumbnail_url', thumbnailUrl);
+                }
             } else {
                 const url = document.getElementById('uploadUrl').value;
                 if (!url) {
@@ -1219,6 +1369,17 @@
                     return;
                 }
                 formData.append('url', url);
+
+                // Add custom thumbnail if provided
+                const thumbnailFile = document.getElementById('uploadThumbnailFile').files[0];
+                if (thumbnailFile) {
+                    formData.append('thumbnail_file', thumbnailFile);
+                }
+
+                const thumbnailUrl = document.getElementById('uploadThumbnailUrl').value;
+                if (thumbnailUrl) {
+                    formData.append('thumbnail_url', thumbnailUrl);
+                }
             }
 
             uploadTags.forEach(tag => formData.append('tags[]', tag));
@@ -1245,6 +1406,30 @@
                 console.error('Upload error:', error);
                 alert('Error uploading media');
             });
+        }
+
+        function handleTypeChange() {
+            const type = document.getElementById('uploadType').value;
+            const autoThumbnailGroup = document.getElementById('autoThumbnailGroup');
+
+            // Show auto-thumbnail checkbox only for local images
+            if (type === 'image' && uploadSource === 'local') {
+                autoThumbnailGroup.style.display = 'block';
+
+                // Check if auto-thumbnail is enabled
+                const autoChecked = document.getElementById('uploadAutoThumbnail').checked;
+                setAdvancedThumbnailState(!autoChecked);
+
+                if (autoChecked) {
+                    // Collapse advanced options when auto is enabled
+                    document.getElementById('advancedThumbnailContent').style.display = 'none';
+                    document.getElementById('advancedThumbnailIcon').textContent = '▶';
+                }
+            } else {
+                autoThumbnailGroup.style.display = 'none';
+                // Always enable advanced options for non-local-image uploads
+                setAdvancedThumbnailState(true);
+            }
         }
 
         function openEditModal(mediaId) {

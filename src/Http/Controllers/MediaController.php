@@ -157,6 +157,10 @@ class MediaController extends Controller
                     meta: [],
                     directory: $validated['directory'] ?? null,
                     generateThumbnail: $validated['generate_thumbnail'] ?? false,
+                    thumbnailUrl: $validated['thumbnail_url'] ?? null,
+                    thumbnailPath: $validated['thumbnail_path'] ?? null,
+                    thumbnailFile: $request->file('thumbnail_file'),
+                    processingConfig: null,
                     tags: $validated['tags'] ?? [],
                 );
             } else {
@@ -167,6 +171,9 @@ class MediaController extends Controller
                     description: $validated['description'] ?? null,
                     date: now(),
                     meta: [],
+                    thumbnailUrl: $validated['thumbnail_url'] ?? null,
+                    thumbnailPath: $validated['thumbnail_path'] ?? null,
+                    thumbnailFile: $request->file('thumbnail_file'),
                     tags: $validated['tags'] ?? [],
                 );
             }

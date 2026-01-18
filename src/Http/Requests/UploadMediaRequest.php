@@ -23,6 +23,9 @@ class UploadMediaRequest extends FormRequest
             'description' => 'nullable|string|max:1000',
             'directory' => 'nullable|string|max:500',
             'generate_thumbnail' => 'nullable|boolean',
+            'thumbnail_file' => 'nullable|file|image',
+            'thumbnail_url' => 'nullable|url|max:2048',
+            'thumbnail_path' => 'nullable|string|max:500',
             'tags' => 'nullable|array|max:20',
             'tags.*' => 'required|string|max:50',
         ];
