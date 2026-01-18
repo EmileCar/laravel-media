@@ -22,6 +22,11 @@ class MediaStorageHelper
         Storage::disk($fileReference->disk)->put($fileReference->getStoragePath(), $data);
     }
 
+    public static function storeThumbnailFile(MediaFileReference $fileReference, string $data): void
+    {
+        Storage::disk($fileReference->disk)->put($fileReference->getThumbnailStoragePath(), $data);
+    }
+
     public static function deleteFile(MediaFileReference $fileReference): void
     {
         Storage::disk($fileReference->disk)->delete($fileReference->getStoragePath());

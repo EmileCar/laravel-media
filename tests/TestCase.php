@@ -39,7 +39,7 @@ abstract class TestCase extends Orchestra
         ]);
 
         $app['config']->set('media.disk', 'local');
-        $app['config']->set('media.storage_path', 'media/{type}');
+        $app['config']->set('media.storage_path', 'media/{path}');
         $app['config']->set('media.thumbnails.storage_path', 'media/thumbnails/{path}');
         $app['config']->set('media.generate_thumbnails', true);
         $app['config']->set('media.enabled_types', ['image', 'video', 'audio', 'document']);

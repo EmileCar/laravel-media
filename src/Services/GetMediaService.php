@@ -61,8 +61,7 @@ class GetMediaService implements GetMediaServiceInterface, AppliesSearchCriteria
 
     public function serveThumbnail(int $id): BinaryFileResponse
     {
-        $media = MediaModel::where('source', 'local')
-            ->where('thumbnail_path', '!=', null)
+        $media = MediaModel::where('thumbnail_path', '!=', null)
             ->findOrFail($id);
 
         $fileReference = $media->loadThumbnailFileReference();
