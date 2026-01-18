@@ -24,9 +24,15 @@ class CaroneMediaServiceProvider extends ServiceProvider
 
         $this->loadRoutesFrom(__DIR__ . '/routes.php');
 
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'media');
+
         $this->publishes([
             __DIR__ . '/../config/media.php' => config_path('media.php'),
         ], 'config');
+
+        $this->publishes([
+            __DIR__ . '/../resources/views' => resource_path('views/vendor/media'),
+        ], 'views');
 
         if ($this->app->runningInConsole()) {
             $this->commands([

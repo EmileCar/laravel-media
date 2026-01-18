@@ -2,6 +2,34 @@
 
 use Illuminate\Support\Facades\Route;
 use Carone\Media\Http\Controllers\MediaController;
+use Carone\Media\Http\Controllers\MediaAdminController;
+
+/*
+|--------------------------------------------------------------------------
+| Admin Panel Routes
+|--------------------------------------------------------------------------
+| Admin interface for managing media (requires management_middleware).
+*/
+if (config('media.admin.enabled', true)) {
+    $adminPrefix = config('media.admin.route_prefix', 'admin/media');
+
+    Route::prefix($adminPrefix)
+        ->middleware(array_merge(['web'], config('media.management_middleware', ['auth'])))
+        ->group(function () {
+            Route::get('/', [MediaAdminController::class, 'index'])->name('media.admin');
+        });
+
+    // Admin API Routes
+    Route::prefix('api/' . $adminPrefix)
+        ->middleware(array_merge(['api'], config('media.management_middleware', ['auth'])))
+        ->group(function () {
+            Route::get('stats', [MediaAdminController::class, 'getStats']);
+            Route::get('media', [MediaAdminController::class, 'getAllMedia']);
+            Route::get('tags', [MediaAdminController::class, 'getAllTags']);
+            Route::put('media/{id}', [MediaAdminController::class, 'updateMedia']);
+            Route::put('media/{id}/tags', [MediaAdminController::class, 'updateMediaTags']);
+        });
+}
 
 /*
 |--------------------------------------------------------------------------
