@@ -19,6 +19,8 @@ class SearchMediaRequest extends FormRequest
             'type' => ['nullable', Rule::in(['image', 'video', 'audio', 'document'])],
             'limit' => 'nullable|integer|min:1|max:100',
             'offset' => 'nullable|integer|min:0',
+            'tags' => 'nullable|array|max:10',
+            'tags.*' => 'required|string|max:50',
         ];
     }
 }

@@ -18,7 +18,14 @@ class GetMediaService implements GetMediaServiceInterface, AppliesSearchCriteria
 {
     public function getResourceById(int $id): MediaResource
     {
-        return MediaModel::findOrFail($id);
+        $query = MediaModel::getClass()::query();
+
+        // Eager load tags if enabled
+        if (config('media.tags.enabled', false)) {
+            $query->with('tags');
+        }
+
+        return $query->findOrFail($id);
     }
 
     public function getMediaTypes(): array
@@ -88,6 +95,11 @@ class GetMediaService implements GetMediaServiceInterface, AppliesSearchCriteria
     {
         $query = MediaModel::getClass()::query();
 
+        // Eager load tags if enabled
+        if (config('media.tags.enabled', false)) {
+            $query->with('tags');
+        }
+
         if ($searchCriteria->searchTerm->hasValue()) {
             $terms = $searchCriteria->searchTerm->getTermsForQuery();
 
@@ -102,6 +114,7 @@ class GetMediaService implements GetMediaServiceInterface, AppliesSearchCriteria
         foreach ($searchCriteria->filters as $type => $values) {
             $filter = match ($type) {
                 'type' => new MediaTypeFilter($values),
+                'tags' => new MediaTagFilter($values),
                 default => null,
             };
 
@@ -112,6 +125,29 @@ class GetMediaService implements GetMediaServiceInterface, AppliesSearchCriteria
 
         return $query;
     }
+
+    /**
+     * Get all tags used in media resources
+     *
+     * @return array Array of tag names with counts
+     */
+    public function getAllTags(): array
+    {
+        if (!config('media.tags.enabled', false)) {
+            return [];
+        }
+
+        return \Carone\Media\Models\Tag::withCount('mediaResources')
+            ->orderBy('name')
+            ->get()
+            ->map(fn($tag) => [
+                'id' => $tag->id,
+                'name' => $tag->name,
+                'slug' => $tag->slug,
+                'count' => $tag->media_resources_count,
+            ])
+            ->toArray();
+    }
 }
 
 class MediaTypeFilter implements SearchFilter
@@ -121,5 +157,27 @@ class MediaTypeFilter implements SearchFilter
     public function apply(Builder $query): Builder
     {
         return $query->whereIn('type', $this->types);
+    }
+}
+
+class MediaTagFilter implements SearchFilter
+{
+    public function __construct(private readonly array $tags) {}
+
+    public function apply(Builder $query): Builder
+    {
+        if (empty($this->tags) || !config('media.tags.enabled', false)) {
+            return $query;
+        }
+
+        // Filter by tag names or slugs
+        return $query->whereHas('tags', function (Builder $q) {
+            $q->where(function (Builder $tagQuery) {
+                foreach ($this->tags as $tag) {
+                    $tagQuery->orWhere('name', $tag)
+                             ->orWhere('slug', \Illuminate\Support\Str::slug($tag));
+                }
+            });
+        });
     }
 }

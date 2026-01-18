@@ -3,12 +3,7 @@
 namespace Carone\Media\Tests\ValueObjects;
 
 use Carone\Media\Tests\TestCase;
-use Carone\Media\UploadStrategies\UploadMediaStrategy;
 use Carone\Media\ValueObjects\MediaType;
-use Carone\Media\Strategies\AudioStrategy;
-use Carone\Media\Strategies\DocumentStrategy;
-use Carone\Media\Strategies\UploadImageStrategy;
-use Carone\Media\Strategies\VideoStrategy;
 
 class MediaTypeTest extends TestCase
 {

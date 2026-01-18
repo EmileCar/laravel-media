@@ -27,7 +27,14 @@ class StoreMediaService implements StoreMediaServiceInterface
         }
 
         $strategy = $this->getUploadStrategy($data);
-        return $data->storeWith($strategy);
+        $media = $data->storeWith($strategy);
+
+        // Sync tags if provided and tags are enabled
+        if (!empty($data->tags)) {
+            $media->syncTags($data->tags);
+        }
+
+        return $media;
     }
 
     private function getUploadStrategy(StoreMediaData $data): UploadMediaStrategy

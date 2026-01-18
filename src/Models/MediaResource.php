@@ -5,6 +5,7 @@ namespace Carone\Media\Models;
 use Carone\Media\ValueObjects\MediaFileReference;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class MediaResource extends Model
 {
@@ -73,6 +74,43 @@ class MediaResource extends Model
     public function hasThumbnail(): bool
     {
         return !empty($this->thumbnail_url) || !empty($this->thumbnail_path);
+    }
+
+    /**
+     * Get the tags for this media resource
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Tag::class,
+            'media_resource_tag',
+            'media_resource_id',
+            'tag_id'
+        )->withTimestamps();
+    }
+
+    /**
+     * Sync tags with the media resource
+     * Creates tags if they don't exist
+     *
+     * @param array $tagNames Array of tag names
+     */
+    public function syncTags(array $tagNames): void
+    {
+        if (!$this->tagsEnabled()) {
+            return;
+        }
+
+        $tags = Tag::findOrCreateByNames($tagNames);
+        $this->tags()->sync($tags->pluck('id'));
+    }
+
+    /**
+     * Check if tags functionality is enabled
+     */
+    public function tagsEnabled(): bool
+    {
+        return config('media.tags.enabled', false);
     }
 
     /**

@@ -4,7 +4,6 @@ namespace Carone\Media\Tests\Http\Controllers;
 
 use Carone\Media\Models\MediaResource;
 use Carone\Media\Tests\TestCase;
-use Carone\Media\ValueObjects\MediaType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -163,7 +162,7 @@ class MediaControllerTest extends TestCase
                     'id',
                     'type',
                     'source',
-                    'display_name',
+                    'name',
                 ],
             ]);
 

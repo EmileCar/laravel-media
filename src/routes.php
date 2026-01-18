@@ -12,6 +12,7 @@ use Carone\Media\Http\Controllers\MediaController;
 */
 Route::prefix('api/media')->middleware('api')->group(function () {
     Route::get('types', [MediaController::class, 'getMediaTypes']);
+    Route::get('tags', [MediaController::class, 'getTags']);
     Route::get('type/{type}', [MediaController::class, 'getMediaByType']);
     Route::get('search', [MediaController::class, 'searchMedia']);
     Route::get('{id}', [MediaController::class, 'getMediaById'])

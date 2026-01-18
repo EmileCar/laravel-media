@@ -157,6 +157,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Tags Configuration
+    |--------------------------------------------------------------------------
+    | Enable or disable tagging functionality for media resources.
+    | When enabled, media can be tagged and filtered by tags.
+    |---------------------------------------------------------------------------
+    */
+    'tags' => [
+        'enabled' => env('MEDIA_TAGS_ENABLED', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Image Processing Configuration
     |--------------------------------------------------------------------------
     | Configure how images should be processed after upload.
