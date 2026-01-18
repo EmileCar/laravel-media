@@ -42,12 +42,13 @@ All media operations are performed through the `Media` facade:
 ```php
 use Carone\Media\Facades\Media;
 
-// Store a new media file
+// Store a new media file with tags
 $media = Media::store([
     'file' => $uploadedFile,
     'name' => 'My Image',
     'description' => 'A beautiful landscape photo',
-    'type' => 'image'
+    'type' => 'image',
+    'tags' => ['Nature', 'Photography', 'Landscape'], // Optional tags
 ]);
 
 // Get media by ID
@@ -110,6 +111,10 @@ return [
         'disk' => 'public',
         'path' => 'media',
     ],
+    
+    'tags' => [
+        'enabled' => true, // Enable/disable tagging system
+    ],
 ];
 ```
 
@@ -123,6 +128,79 @@ The package supports four media types:
 - **Document**: PDF, DOC, DOCX, TXT
 
 Each type can be individually enabled/disabled in the configuration.
+
+## Tags
+
+The package includes a flexible tagging system that allows you to organize and categorize your media files.
+
+### Uploading Media with Tags
+
+```php
+use Carone\Media\Facades\Media;
+
+// Upload image with tags
+$media = Media::store([
+    'type' => 'image',
+    'file' => $request->file('image'),
+    'name' => 'Sunset Photo',
+    'tags' => ['Nature', 'Photography', 'Sunset'], // Tags are automatically created if they don't exist
+]);
+
+// Upload external media with tags
+$media = Media::store([
+    'type' => 'video',
+    'source' => 'external',
+    'url' => 'https://youtube.com/watch?v=example',
+    'name' => 'Tutorial Video',
+    'tags' => ['Tutorial', 'Education'],
+]);
+```
+
+### Managing Tags
+
+Tags are automatically created if they don't exist. The package handles:
+- **Automatic slug generation** - "Nature Photography" becomes "nature-photography"
+- **Case-insensitive matching** - "Nature", "nature", and "NATURE" are treated as the same tag
+- **Duplicate prevention** - Reuses existing tags instead of creating duplicates
+
+### Accessing Tags
+
+```php
+// Get all tags for a media resource
+$tags = $media->tags; // Collection of Tag models
+
+// Get tag names
+$tagNames = $media->tags->pluck('name')->toArray();
+// ['Nature', 'Photography', 'Sunset']
+
+// Get tag slugs
+$tagSlugs = $media->tags->pluck('slug')->toArray();
+// ['nature', 'photography', 'sunset']
+```
+
+### Updating Tags
+
+```php
+// Sync tags (replaces existing tags)
+$media->syncTags(['New Tag', 'Another Tag']);
+
+// The old tags are removed, only the new ones remain
+```
+
+### Configuration
+
+Enable or disable tags in `config/media.php`:
+
+```php
+'tags' => [
+    'enabled' => true, // Set to false to disable tagging functionality
+],
+```
+
+When tags are disabled:
+- Tags provided during upload are ignored
+- Existing tag relationships remain in the database
+- No validation errors are thrown
 
 ## API Response Format
 
@@ -140,7 +218,11 @@ These public endpoints return a minimal, SEO-friendly format:
             "date": "2025-01-15",
             "type": "image",
             "thumbnail_url": "https://example.com/media/thumbnails/1",
-            "media_url": "https://example.com/media/images/photo.jpg"
+            "media_url": "https://example.com/media/images/photo.jpg",
+            "tags": [
+                {"id": 1, "name": "Nature", "slug": "nature"},
+                {"id": 2, "name": "Photography", "slug": "photography"}
+            ]
         }
     ],
     "total": 50,
@@ -157,6 +239,7 @@ These public endpoints return a minimal, SEO-friendly format:
 - `type` - Media type (image, video, audio, document)
 - `thumbnail_url` - Thumbnail URL (null if no thumbnail)
 - `media_url` - Direct URL to media file
+- `tags` - Array of tag objects with id, name, and slug
 
 ### Single Media Resource (GET /api/media/{id})
 
@@ -179,6 +262,10 @@ The detail endpoint returns complete information:
         "height": 1080,
         "exif": {...}
     },
+    "tags": [
+        {"id": 1, "name": "Nature", "slug": "nature"},
+        {"id": 2, "name": "Photography", "slug": "photography"}
+    ],
     "created_at": "2023-10-25T12:34:56.000000Z",
     "updated_at": "2023-10-25T12:34:56.000000Z"
 }
@@ -199,7 +286,10 @@ Public browsing and search endpoints return simplified data:
             "date": "2024-01-01",
             "type": "image",
             "thumbnail_url": "http://localhost/media/thumbnails/1",
-            "media_url": "http://localhost/media/uploads/2024/01/example.jpg"
+            "media_url": "http://localhost/media/uploads/2024/01/example.jpg",
+            "tags": [
+                {"id": 1, "name": "Nature", "slug": "nature"}
+            ]
         }
     ],
     "per_page": 15,
@@ -223,6 +313,9 @@ Management endpoints return complete resource data:
         "dimensions": {"width": 1920, "height": 1080},
         "exif": {...}
     },
+    "tags": [
+        {"id": 1, "name": "Nature", "slug": "nature"}
+    ],
     "created_at": "2024-01-01T12:00:00.000000Z",
     "updated_at": "2024-01-01T12:00:00.000000Z"
 }
@@ -286,6 +379,7 @@ The public search endpoints automatically generate these URLs:
 - File extensions are strictly checked against allowed lists
 - MIME type validation prevents malicious uploads
 - Automatic cleanup of orphaned files
+- Tag input is sanitized and validated
 
 ## Error Handling
 
@@ -328,6 +422,8 @@ src/
 ├── Services/                        # ❌ INTERNAL - Do not use
 ├── Strategies/                      # ❌ INTERNAL - Do not use
 ├── Models/                          # ❌ INTERNAL - Do not use
+│   ├── MediaResource.php           # Media model
+│   └── Tag.php                     # Tag model (for tagging system)
 ├── Enums/                          # ❌ INTERNAL - Do not use
 └── Utilities/                      # ❌ INTERNAL - Do not use
 ```
@@ -337,8 +433,27 @@ src/
 - **MediaManager**: Central orchestrator (accessed via facade)
 - **Services**: Business logic layer
 - **Strategies**: Media type-specific processing
-- **Models**: Database entities
+- **Models**: Database entities (MediaResource, Tag)
 - **Contracts**: Service interfaces
+
+## Database Schema
+
+The package creates the following tables:
+
+### media_resources
+Stores all media files (images, videos, audio, documents)
+
+### media_tags
+Stores tags that can be attached to media resources
+- `id` - Primary key
+- `name` - Display name (e.g., "Nature Photography")
+- `slug` - URL-friendly slug (e.g., "nature-photography")
+- `created_at`, `updated_at` - Timestamps
+
+### media_resource_tag
+Pivot table for many-to-many relationship between media and tags
+- `media_resource_id` - Foreign key to media_resources
+- `tag_id` - Foreign key to media_tags
 
 ## License
 
@@ -364,6 +479,7 @@ Easily handle media uploads, storage, and metadata (images, videos, audio, and d
 - 🖼️ **Automatic Thumbnails** - Generate thumbnails for images
 - 📁 **Multiple Storage** - Support for local and external media
 - 🔍 **Search & Filter** - Built-in search and pagination
+- 🏷️ **Tagging System** - Organize media with tags (auto-created, case-insensitive)
 - 🛡️ **File Validation** - Configurable validation rules per media type
 - 🚀 **Ready-to-use API** - Complete REST API endpoints
 - 📝 **Comprehensive Logging** - Detailed error logging and debugging
@@ -421,20 +537,22 @@ Table structure:
 ```php
 use Carone\Media\Actions\StoreMediaAction;
 
-// Upload a local image
+// Upload a local image with tags
 $media = StoreMediaAction::run([
     'type' => 'image',
     'file' => $request->file('image'),
     'name' => 'My Beautiful Image',
     'description' => 'A description of the image',
+    'tags' => ['Nature', 'Landscape', 'Photography'],
 ]);
 
-// Upload external media
+// Upload external media with tags
 $media = StoreMediaAction::run([
     'type' => 'video',
     'source' => 'external',
     'url' => 'https://www.youtube.com/watch?v=example',
     'name' => 'External Video',
+    'tags' => ['Tutorial', 'Video'],
 ]);
 ```
 
@@ -446,8 +564,9 @@ use Carone\Media\Actions\GetMediaAction;
 // Get media by type with pagination
 $images = GetMediaAction::byType('image', $limit = 20, $offset = 0);
 
-// Get single media item
+// Get single media item (includes tags)
 $media = GetMediaAction::byId(1);
+$tags = $media->tags; // Collection of Tag models
 
 // Search media
 $results = GetMediaAction::make()->search('vacation photos', 'image');
@@ -458,7 +577,7 @@ $results = GetMediaAction::make()->search('vacation photos', 'image');
 ```php
 use Carone\Media\Actions\DeleteMediaAction;
 
-// Delete single media
+// Delete single media (also removes tag associations)
 $success = DeleteMediaAction::run($mediaId);
 
 // Bulk delete
@@ -475,6 +594,16 @@ The package automatically provides routes for serving files:
 
 <!-- Thumbnail (images only) -->
 <img src="/media/image/thumbnails/my-image.jpg" alt="Thumbnail">
+
+<!-- With tags -->
+<div>
+    <img src="/media/image/my-image.jpg" alt="My Image">
+    <div class="tags">
+        @foreach($media->tags as $tag)
+            <span class="tag">{{ $tag->name }}</span>
+        @endforeach
+    </div>
+</div>
 ```
 
 ## API Endpoints
@@ -483,10 +612,10 @@ The package provides ready-to-use REST API endpoints:
 
 ```
 GET    /api/media/types              # Get available media types
-GET    /api/media/type/{type}        # Get media by type (paginated)
-GET    /api/media/search             # Search media
-POST   /api/media/upload             # Upload media
-GET    /api/media/{id}               # Get media by ID
+GET    /api/media/type/{type}        # Get media by type (paginated, includes tags)
+GET    /api/media/search             # Search media (includes tags)
+POST   /api/media/upload             # Upload media (accepts tags array)
+GET    /api/media/{id}               # Get media by ID (includes tags)
 DELETE /api/media/{id}               # Delete media
 DELETE /api/media/bulk               # Bulk delete media
 
@@ -512,9 +641,14 @@ public function uploadMedia(Request $request)
         'type' => $request->input('type'),
         'file' => $request->file('file'),
         'name' => $request->input('name'),
+        'tags' => $request->input('tags', []), // Optional tags
     ]);
 
-    return response()->json(['success' => true, 'media' => $media]);
+    return response()->json([
+        'success' => true, 
+        'media' => $media,
+        'tags' => $media->tags->pluck('name'),
+    ]);
 }
 ```
 
@@ -547,6 +681,11 @@ Configure validation rules per media type:
     'disk' => null, // If null, uses same disk as media. Can be customized per upload.
     'storage_path' => 'media/thumbnails/{path}',
 ],
+
+// Tags configuration
+'tags' => [
+    'enabled' => true, // Enable/disable tagging system
+],
 ```
 
 **Important:** The main media disk is configured globally and cannot be overridden per upload. This ensures consistent, path-based media URLs. Thumbnails can still use custom disks.
@@ -557,15 +696,15 @@ The package provides separate public and protected routes:
 
 **Public Routes** (no authentication required):
 - `GET /api/media/types` - Get enabled media types
-- `GET /api/media/type/{type}` - Browse media by type
-- `GET /api/media/search` - Search media
-- `GET /api/media/{id}` - Get media details
+- `GET /api/media/type/{type}` - Browse media by type (includes tags)
+- `GET /api/media/search` - Search media (includes tags)
+- `GET /api/media/{id}` - Get media details (includes tags)
 - `GET /media/{path}` - Serve media files
 - `GET /media/thumbnails/{id}` - Serve thumbnails
 
 **Protected Routes** (authentication required by default):
-- `POST /api/media/upload` - Upload media
-- `DELETE /api/media/{id}` - Delete media
+- `POST /api/media/upload` - Upload media (accepts tags)
+- `DELETE /api/media/{id}` - Delete media (removes tag associations)
 - `DELETE /api/media/bulk` - Bulk delete media
 
 Configure protection in `config/media.php`:

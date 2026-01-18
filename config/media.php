@@ -161,12 +161,6 @@ return [
     |--------------------------------------------------------------------------
     | Enable or disable tagging functionality for media resources.
     | When enabled, media can be tagged and filtered by tags.
-    |
-    | Features when enabled:
-    |   - Assign multiple tags to media during upload
-    |   - Search/filter media by tags
-    |   - Retrieve all available tags
-    |   - Auto-create tags that don't exist
     |---------------------------------------------------------------------------
     */
     'tags' => [

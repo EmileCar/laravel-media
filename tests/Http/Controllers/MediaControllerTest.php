@@ -162,7 +162,7 @@ class MediaControllerTest extends TestCase
                     'id',
                     'type',
                     'source',
-                    'display_name',
+                    'name',
                 ],
             ]);
 
