@@ -22,6 +22,41 @@ Run the migrations:
 php artisan migrate
 ```
 
+## Admin Panel
+
+The package includes a beautiful admin interface for managing media files. Access it at `/admin/media` (configurable).
+
+### Features
+
+- 📸 **Visual Media Browser** - Grid view with thumbnails for all media types
+- 🔍 **Advanced Filtering** - Filter by type, source, tags, and search by name/description
+- 🏷️ **Tag Management** - Add, edit, and remove tags from media
+- ✏️ **Quick Edit** - Update media name, description, and tags inline
+- 🗑️ **Bulk Actions** - Select multiple media and delete in bulk
+- 📊 **Statistics** - View media counts by type and source
+- 📱 **Responsive Design** - Works seamlessly on all devices
+
+### Configuration
+
+Configure the admin panel in `config/media.php`:
+
+```php
+'admin' => [
+    'enabled' => true,
+    'route_prefix' => 'admin/media', // Customize the admin URL
+],
+```
+
+### Access Control
+
+The admin panel is protected by the `management_middleware` configuration:
+
+```php
+'management_middleware' => ['auth'], // Require authentication
+// or
+'management_middleware' => ['auth', 'admin'], // Require admin role
+```
+
 ## ⚠️ IMPORTANT: Public API
 
 **This package provides ONLY ONE public interface: the `Media` facade.**

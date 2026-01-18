@@ -157,6 +157,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Admin Panel Configuration
+    |--------------------------------------------------------------------------
+    | Configure the admin panel route and settings.
+    | The admin panel allows authorized users to manage media files, tags,
+    | and perform bulk operations through a user-friendly interface.
+    |---------------------------------------------------------------------------
+    */
+    'admin' => [
+        'enabled' => env('MEDIA_ADMIN_ENABLED', true),
+        'route_prefix' => env('MEDIA_ADMIN_ROUTE', 'admin/media'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Tags Configuration
     |--------------------------------------------------------------------------
     | Enable or disable tagging functionality for media resources.

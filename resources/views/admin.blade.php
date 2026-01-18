@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Media Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #2d3748;
+        }
+
+        .header {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header img {
+            height: 46px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .stat-badge {
+            padding: 0.5rem 1rem;
+            background: #ebf8ff;
+            color: #2c5282;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .container {
+            display: flex;
+            height: calc(100vh - 73px);
+        }
+
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f7fafc;
+        }
+
+        .sidebar-header h2 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #718096;
+        }
+
+        .filter-section {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .filter-section h3 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #718096;
+            margin-bottom: 0.75rem;
+        }
+
+        .filter-option {
+            padding: 0.625rem 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 0.375rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+
+        .filter-option:hover {
+            background: #f7fafc;
+        }
+
+        .filter-option.active {
+            background: #ebf8ff;
+            color: #2c5282;
+            font-weight: 500;
+        }
+
+        .filter-count {
+            background: #edf2f7;
+            color: #4a5568;
+            font-size: 0.75rem;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+
+        .filter-option.active .filter-count {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .toolbar {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.625rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #3182ce;
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+        }
+
+        .toolbar-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: #3182ce;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2c5282;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+        }
+
+        .btn-secondary {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .media-card {
+            background: white;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .media-card:hover {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .media-card.selected {
+            border-color: #3182ce;
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+        }
+
+        .media-checkbox {
+            position: absolute;
+            top: 0.75rem;
+            left: 0.75rem;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .media-preview {
+            width: 100%;
+            height: 200px;
+            background: #f7fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .media-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .media-preview-icon {
+            font-size: 3rem;
+            color: #cbd5e0;
+        }
+
+        .media-info {
+            padding: 1rem;
+        }
+
+        .media-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .media-meta {
+            font-size: 0.75rem;
+            color: #718096;
+            margin-bottom: 0.5rem;
+        }
+
+        .media-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+        }
+
+        .tag {
+            background: #edf2f7;
+            color: #4a5568;
+            padding: 0.125rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .media-actions {
+            display: flex;
+            gap: 0.5rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #f7fafc;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #f7fafc;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modal-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: #4a5568;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3182ce;
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .tag-input-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            min-height: 48px;
+        }
+
+        .tag-input-container:focus-within {
+            border-color: #3182ce;
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+        }
+
+        .tag-item {
+            background: #ebf8ff;
+            color: #2c5282;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tag-remove {
+            cursor: pointer;
+            font-weight: bold;
+            color: #2c5282;
+        }
+
+        .tag-remove:hover {
+            color: #1a365d;
+        }
+
+        .tag-input {
+            flex: 1;
+            min-width: 120px;
+            border: none;
+            outline: none;
+            padding: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #718096;
+        }
+
+        .spinner {
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #3182ce;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #718096;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1rem;
+            opacity: 0.5;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            padding: 1rem;
+        }
+
+        .page-btn {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: #f7fafc;
+        }
+
+        .page-btn.active {
+            background: #3182ce;
+            color: white;
+            border-color: #3182ce;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .bulk-actions-bar {
+            display: none;
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            align-items: center;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .bulk-actions-bar.active {
+            display: flex;
+        }
+
+        .type-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .type-badge.image {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .type-badge.video {
+            background: #e6fffa;
+            color: #234e52;
+        }
+
+        .type-badge.audio {
+            background: #fef5e7;
+            color: #7c2d12;
+        }
+
+        .type-badge.document {
+            background: #e9d8fd;
+            color: #44337a;
+        }
+
+        .file-size {
+            color: #718096;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            <img src="https://emilecaron.be/assets/LOGO_CARONE_main.png" alt="Carone Logo">
+            <a href="https://github.com/EmileCar/laravel-media" target="_blank" style="text-decoration: none; color: #007bed; font-weight: bold; transition: text-decoration 0.2s;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+                Media Manager
+            </a>
+        </h1>
+
+        <div class="header-right">
+            <div class="stats-container" id="statsContainer">
+                <div class="stat-badge" id="totalMediaStat">Loading...</div>
+            </div>
+            <a href="{{ config('app.url') }}" target="_blank" style="text-decoration: none; color: #3182ce; font-weight: 500; font-style: italic; transition: text-decoration 0.2s;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+                Back to Site
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Filters</h2>
+            </div>
+
+            <div class="filter-section">
+                <h3>Type</h3>
+                <div class="filter-option active" data-filter-type="type" data-value="all" onclick="applyFilter('type', 'all')">
+                    <span>All Media</span>
+                    <span class="filter-count" id="count-all">0</span>
+                </div>
+                @foreach($enabledTypes as $type)
+                <div class="filter-option" data-filter-type="type" data-value="{{ $type }}" onclick="applyFilter('type', '{{ $type }}')">
+                    <span style="text-transform: capitalize;">{{ ucfirst($type) }}</span>
+                    <span class="filter-count" id="count-{{ $type }}">0</span>
+                </div>
+                @endforeach
+            </div>
+
+            <div class="filter-section">
+                <h3>Source</h3>
+                <div class="filter-option active" data-filter-type="source" data-value="all" onclick="applyFilter('source', 'all')">
+                    <span>All Sources</span>
+                    <span class="filter-count" id="count-source-all">-</span>
+                </div>
+                <div class="filter-option" data-filter-type="source" data-value="local" onclick="applyFilter('source', 'local')">
+                    <span>Local</span>
+                    <span class="filter-count" id="count-source-local">0</span>
+                </div>
+                <div class="filter-option" data-filter-type="source" data-value="external" onclick="applyFilter('source', 'external')">
+                    <span>External</span>
+                    <span class="filter-count" id="count-source-external">0</span>
+                </div>
+            </div>
+
+            @if($tagsEnabled)
+            <div class="filter-section" id="tagsFilter">
+                <h3>Tags</h3>
+                <div class="filter-option active" data-filter-type="tag" data-value="" onclick="applyFilter('tag', '')">
+                    <span>All Tags</span>
+                    <span class="filter-count" id="count-tag-all">-</span>
+                </div>
+                <div id="tagsList"></div>
+            </div>
+            @endif
+        </div>
+
+        <div class="main-content">
+            <div class="toolbar">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search media by name or description..." oninput="debounceSearch()">
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-primary" onclick="openUploadModal()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        Upload Media
+                    </button>
+                    <button class="btn btn-secondary" onclick="refreshMedia()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                        </svg>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div id="mediaContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading media...</p>
+                </div>
+            </div>
+
+            <div id="paginationContainer"></div>
+        </div>
+    </div>
+
+    <!-- Bulk Actions Bar -->
+    <div class="bulk-actions-bar" id="bulkActionsBar">
+        <span id="selectedCount">0 selected</span>
+        <button class="btn btn-danger" onclick="bulkDelete()">
+            Delete Selected
+        </button>
+        <button class="btn btn-secondary" onclick="clearSelection()">
+            Clear Selection
+        </button>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal" id="uploadModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Upload Media</h3>
+            </div>
+            <form id="uploadForm" onsubmit="uploadMedia(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Source *</label>
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="radio" name="uploadSource" value="local" checked onchange="switchUploadSource('local')" style="margin-right: 0.5rem;">
+                                Local File
+                            </label>
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="radio" name="uploadSource" value="external" onchange="switchUploadSource('external')" style="margin-right: 0.5rem;">
+                                External URL
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Media Type *</label>
+                        <select class="form-control" id="uploadType" required>
+                            <option value="">Select type</option>
+                            @foreach($enabledTypes as $type)
+                            <option value="{{ $type }}">{{ ucfirst($type) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group" id="uploadFileGroup">
+                        <label>File *</label>
+                        <input type="file" class="form-control" id="uploadFile">
+                    </div>
+                    <div class="form-group" id="uploadUrlGroup" style="display: none;">
+                        <label>URL *</label>
+                        <input type="url" class="form-control" id="uploadUrl" placeholder="https://example.com/media.jpg">
+                    </div>
+                    <div class="form-group">
+                        <label>Name *</label>
+                        <input type="text" class="form-control" id="uploadName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea class="form-control" id="uploadDescription"></textarea>
+                    </div>
+                    @if($tagsEnabled)
+                    <div class="form-group">
+                        <label>Tags</label>
+                        <div class="tag-input-container" id="uploadTagsContainer" onclick="document.getElementById('uploadTagInput').focus()">
+                            <input type="text" class="tag-input" id="uploadTagInput" placeholder="Add tags..." onkeydown="handleTagInput(event)">
+                        </div>
+                    </div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeUploadModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Media</h3>
+            </div>
+            <form id="editForm" onsubmit="saveEdit(event)">
+                <input type="hidden" id="editMediaId">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Name *</label>
+                        <input type="text" class="form-control" id="editName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea class="form-control" id="editDescription"></textarea>
+                    </div>
+                    @if($tagsEnabled)
+                    <div class="form-group">
+                        <label>Tags</label>
+                        <div class="tag-input-container" id="editTagsContainer" onclick="document.getElementById('editTagInput').focus()">
+                            <input type="text" class="tag-input" id="editTagInput" placeholder="Add tags..." onkeydown="handleEditTagInput(event)">
+                        </div>
+                    </div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        const apiBaseUrl = '/api/media';
+        const adminApiUrl = '/api/{{ config("media.admin.route_prefix", "admin/media") }}';
+
+        let currentFilters = {
+            type: 'all',
+            source: 'all',
+            tag: '',
+            search: '',
+            page: 1,
+            per_page: 24
+        };
+
+        let selectedMedia = new Set();
+        let uploadTags = [];
+        let editTags = [];
+        let allTags = [];
+        let searchTimeout = null;
+        let uploadSource = 'local';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            loadMedia();
+            @if($tagsEnabled)
+            loadTags();
+            @endif
+        });
+
+        function loadStats() {
+            fetch(`${adminApiUrl}/stats`, {
+                headers: {
+                    'Authorization': `Bearer ${csrfToken}`,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('totalMediaStat').textContent = `${data.total} Total Media`;
+                document.getElementById('count-all').textContent = data.total;
+
+                // Update type counts
+                Object.entries(data.by_type).forEach(([type, count]) => {
+                    const el = document.getElementById(`count-${type}`);
+                    if (el) el.textContent = count;
+                });
+
+                // Update source counts
+                document.getElementById('count-source-local').textContent = data.by_source.local;
+                document.getElementById('count-source-external').textContent = data.by_source.external;
+            });
+        }
+
+        function loadTags() {
+            fetch(`${adminApiUrl}/tags`, {
+                headers: {
+                    'Authorization': `Bearer ${csrfToken}`,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                allTags = data;
+                displayTagsFilter(data);
+            });
+        }
+
+        function displayTagsFilter(tags) {
+            const container = document.getElementById('tagsList');
+            if (!container) return;
+
+            if (tags.length === 0) {
+                container.innerHTML = '<div style="padding: 0.5rem; color: #718096; font-size: 0.75rem;">No tags yet</div>';
+                return;
+            }
+
+            container.innerHTML = tags.map(tag => `
+                <div class="filter-option" data-filter-type="tag" data-value="${tag.slug}" onclick="applyFilter('tag', '${tag.slug}')">
+                    <span>${tag.name}</span>
+                    <span class="filter-count">${tag.media_resources_count}</span>
+                </div>
+            `).join('');
+        }
+
+        function applyFilter(type, value) {
+            currentFilters[type] = value;
+            currentFilters.page = 1;
+
+            // Update active state
+            document.querySelectorAll(`.filter-option[data-filter-type="${type}"]`).forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelector(`.filter-option[data-filter-type="${type}"][data-value="${value}"]`)?.classList.add('active');
+
+            loadMedia();
+        }
+
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentFilters.search = document.getElementById('searchInput').value;
+                currentFilters.page = 1;
+                loadMedia();
+            }, 500);
+        }
+
+        function loadMedia() {
+            const params = new URLSearchParams();
+            Object.entries(currentFilters).forEach(([key, value]) => {
+                if (value) params.append(key, value);
+            });
+
+            fetch(`${adminApiUrl}/media?${params}`, {
+                headers: {
+                    'Authorization': `Bearer ${csrfToken}`,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayMedia(data.data);
+                displayPagination(data);
+            })
+            .catch(error => {
+                document.getElementById('mediaContainer').innerHTML = `
+                    <div class="empty-state">
+                        <p>Error loading media. Please try again.</p>
+                    </div>
+                `;
+            });
+        }
+
+        function displayMedia(media) {
+            const container = document.getElementById('mediaContainer');
+
+            if (media.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <p>No media found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="media-grid">
+                    ${media.map(item => createMediaCard(item)).join('')}
+                </div>
+            `;
+        }
+
+        function createMediaCard(media) {
+            const isSelected = selectedMedia.has(media.id);
+            const thumbnailUrl = media.thumbnail_url || getMediaPreview(media);
+            const fileSize = formatFileSize(media.file_size);
+
+            return `
+                <div class="media-card ${isSelected ? 'selected' : ''}" data-media-id="${media.id}">
+                    <input type="checkbox" class="media-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleMediaSelection(${media.id})">
+                    <div class="media-preview">
+                        ${media.type === 'image' ? `<img src="${thumbnailUrl}" alt="${media.name}">` : `
+                            <div class="media-preview-icon">${getMediaIcon(media.type)}</div>
+                        `}
+                    </div>
+                    <div class="media-info">
+                        <div class="media-name" title="${media.display_name}">${media.display_name}</div>
+                        <div class="media-meta">
+                            <span class="type-badge ${media.type}">${media.type}</span>
+                            ${fileSize ? `<span class="file-size">${fileSize}</span>` : ''}
+                        </div>
+                        ${media.tags && media.tags.length > 0 ? `
+                            <div class="media-tags">
+                                ${media.tags.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                        <div class="media-actions">
+                            <button class="action-btn" onclick="openEditModal(${media.id})">Edit</button>
+                            <button class="action-btn" onclick="viewMedia(${media.id})">View</button>
+                            <button class="action-btn" onclick="deleteMedia(${media.id})">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getMediaPreview(media) {
+            if (media.thumbnail_url) return media.thumbnail_url;
+            if (media.type === 'image' && media.url) return media.url;
+            return '';
+        }
+
+        function getMediaIcon(type) {
+            const icons = {
+                video: '🎥',
+                audio: '🎵',
+                document: '📄',
+                image: '🖼️'
+            };
+            return icons[type] || '📁';
+        }
+
+        function formatFileSize(bytes) {
+            if (!bytes) return '';
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
+        }
+
+        function displayPagination(data) {
+            const container = document.getElementById('paginationContainer');
+            if (data.last_page <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '<div class="pagination">';
+
+            // Previous button
+            html += `<button class="page-btn" ${data.current_page === 1 ? 'disabled' : ''} onclick="changePage(${data.current_page - 1})">Previous</button>`;
+
+            // Page numbers
+            for (let i = 1; i <= data.last_page; i++) {
+                if (i === 1 || i === data.last_page || (i >= data.current_page - 2 && i <= data.current_page + 2)) {
+                    html += `<button class="page-btn ${i === data.current_page ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+                } else if (i === data.current_page - 3 || i === data.current_page + 3) {
+                    html += `<span>...</span>`;
+                }
+            }
+
+            // Next button
+            html += `<button class="page-btn" ${data.current_page === data.last_page ? 'disabled' : ''} onclick="changePage(${data.current_page + 1})">Next</button>`;
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function changePage(page) {
+            currentFilters.page = page;
+            loadMedia();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function refreshMedia() {
+            loadStats();
+            loadMedia();
+            @if($tagsEnabled)
+            loadTags();
+            @endif
+        }
+
+        function toggleMediaSelection(mediaId) {
+            if (selectedMedia.has(mediaId)) {
+                selectedMedia.delete(mediaId);
+            } else {
+                selectedMedia.add(mediaId);
+            }
+            updateBulkActionsBar();
+            updateMediaCardSelection(mediaId);
+        }
+
+        function updateMediaCardSelection(mediaId) {
+            const card = document.querySelector(`[data-media-id="${mediaId}"]`);
+            if (card) {
+                if (selectedMedia.has(mediaId)) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            }
+        }
+
+        function updateBulkActionsBar() {
+            const bar = document.getElementById('bulkActionsBar');
+            const count = document.getElementById('selectedCount');
+
+            count.textContent = `${selectedMedia.size} selected`;
+
+            if (selectedMedia.size > 0) {
+                bar.classList.add('active');
+            } else {
+                bar.classList.remove('active');
+            }
+        }
+
+        function clearSelection() {
+            selectedMedia.clear();
+            document.querySelectorAll('.media-card').forEach(card => {
+                card.classList.remove('selected');
+                card.querySelector('.media-checkbox').checked = false;
+            });
+            updateBulkActionsBar();
+        }
+
+        function bulkDelete() {
+            if (!confirm(`Are you sure you want to delete ${selectedMedia.size} media items? This action cannot be undone.`)) {
+                return;
+            }
+
+            const ids = Array.from(selectedMedia);
+
+            fetch(`${apiBaseUrl}/bulk`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ ids })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Successfully deleted ${data.deleted} of ${data.deleted + data.failed} items`);
+                    clearSelection();
+                    refreshMedia();
+                }
+            })
+            .catch(error => {
+                alert('Error deleting media');
+            });
+        }
+
+        function openUploadModal() {
+            document.getElementById('uploadModal').classList.add('active');
+            uploadTags = [];
+            uploadSource = 'local';
+            switchUploadSource('local');
+            updateUploadTagsDisplay();
+        }
+
+        function closeUploadModal() {
+            document.getElementById('uploadModal').classList.remove('active');
+            document.getElementById('uploadForm').reset();
+            uploadTags = [];
+            uploadSource = 'local';
+        }
+
+        function switchUploadSource(source) {
+            uploadSource = source;
+            const fileGroup = document.getElementById('uploadFileGroup');
+            const urlGroup = document.getElementById('uploadUrlGroup');
+            const fileInput = document.getElementById('uploadFile');
+            const urlInput = document.getElementById('uploadUrl');
+
+            if (source === 'local') {
+                fileGroup.style.display = 'block';
+                urlGroup.style.display = 'none';
+                fileInput.required = true;
+                urlInput.required = false;
+            } else {
+                fileGroup.style.display = 'none';
+                urlGroup.style.display = 'block';
+                fileInput.required = false;
+                urlInput.required = true;
+            }
+        }
+
+        function handleTagInput(event) {
+            if (event.key === 'Enter' || event.key === ',') {
+                event.preventDefault();
+                const input = event.target;
+                const value = input.value.trim();
+                if (value && !uploadTags.includes(value)) {
+                    uploadTags.push(value);
+                    updateUploadTagsDisplay();
+                }
+                input.value = '';
+            }
+        }
+
+        function updateUploadTagsDisplay() {
+            const container = document.getElementById('uploadTagsContainer');
+            const input = document.getElementById('uploadTagInput');
+
+            const tagsHtml = uploadTags.map(tag => `
+                <div class="tag-item">
+                    <span>${tag}</span>
+                    <span class="tag-remove" onclick="removeUploadTag('${tag}')">×</span>
+                </div>
+            `).join('');
+
+            container.innerHTML = tagsHtml + container.querySelector('.tag-input').outerHTML;
+        }
+
+        function removeUploadTag(tag) {
+            uploadTags = uploadTags.filter(t => t !== tag);
+            updateUploadTagsDisplay();
+        }
+
+        function uploadMedia(event) {
+            event.preventDefault();
+
+            const formData = new FormData();
+            formData.append('type', document.getElementById('uploadType').value);
+            formData.append('source', uploadSource);
+            formData.append('name', document.getElementById('uploadName').value);
+            formData.append('description', document.getElementById('uploadDescription').value || '');
+
+            if (uploadSource === 'local') {
+                const fileInput = document.getElementById('uploadFile');
+                if (!fileInput.files[0]) {
+                    alert('Please select a file to upload');
+                    return;
+                }
+                formData.append('file', fileInput.files[0]);
+            } else {
+                const url = document.getElementById('uploadUrl').value;
+                if (!url) {
+                    alert('Please enter a URL');
+                    return;
+                }
+                formData.append('url', url);
+            }
+
+            uploadTags.forEach(tag => formData.append('tags[]', tag));
+
+            fetch(`${apiBaseUrl}/upload`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success || data.id) {
+                    alert('Media uploaded successfully!');
+                    closeUploadModal();
+                    refreshMedia();
+                } else {
+                    alert('Error uploading media: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Upload error:', error);
+                alert('Error uploading media');
+            });
+        }
+
+        function openEditModal(mediaId) {
+            // Fetch media details
+            fetch(`${apiBaseUrl}/${mediaId}`, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(response => {
+                const data = response.data; // Extract nested data object
+                document.getElementById('editMediaId').value = data.id;
+                document.getElementById('editName').value = data.name;
+                document.getElementById('editDescription').value = data.description || '';
+                editTags = data.tags;
+                updateEditTagsDisplay();
+                document.getElementById('editModal').classList.add('active');
+            });
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            editTags = [];
+        }
+
+        function handleEditTagInput(event) {
+            if (event.key === 'Enter' || event.key === ',') {
+                event.preventDefault();
+                const input = event.target;
+                const value = input.value.trim();
+                if (value && !editTags.includes(value)) {
+                    editTags.push(value);
+                    updateEditTagsDisplay();
+                }
+                input.value = '';
+            }
+        }
+
+        function updateEditTagsDisplay() {
+            const container = document.getElementById('editTagsContainer');
+            const input = document.getElementById('editTagInput');
+
+            const tagsHtml = editTags.map(tag => `
+                <div class="tag-item">
+                    <span>${tag}</span>
+                    <span class="tag-remove" onclick="removeEditTag('${tag}')">×</span>
+                </div>
+            `).join('');
+
+            container.innerHTML = tagsHtml + container.querySelector('.tag-input').outerHTML;
+        }
+
+        function removeEditTag(tag) {
+            editTags = editTags.filter(t => t !== tag);
+            updateEditTagsDisplay();
+        }
+
+        function saveEdit(event) {
+            event.preventDefault();
+
+            const mediaId = document.getElementById('editMediaId').value;
+            const data = {
+                name: document.getElementById('editName').value,
+                description: document.getElementById('editDescription').value,
+            };
+
+            // Update basic info
+            fetch(`${adminApiUrl}/media/${mediaId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(() => {
+                // Update tags
+                return fetch(`${adminApiUrl}/media/${mediaId}/tags`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ tags: editTags })
+                });
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Media updated successfully!');
+                    closeEditModal();
+                    refreshMedia();
+                }
+            })
+            .catch(error => {
+                alert('Error updating media');
+            });
+        }
+
+        function viewMedia(mediaId) {
+            // Fetch media details and open in new tab
+            fetch(`${apiBaseUrl}/${mediaId}`, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(response => {
+                const data = response.data; // Extract nested data object
+                if (data.media_url) {
+                    window.open(data.media_url, '_blank');
+                } else if (data.url) {
+                    window.open(data.url, '_blank');
+                }
+            });
+        }
+
+        function deleteMedia(mediaId) {
+            if (!confirm('Are you sure you want to delete this media? This action cannot be undone.')) {
+                return;
+            }
+
+            fetch(`${apiBaseUrl}/${mediaId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Media deleted successfully!');
+                    refreshMedia();
+                }
+            })
+            .catch(error => {
+                alert('Error deleting media');
+            });
+        }
+
+        // Close modals on outside click
+        document.getElementById('uploadModal').addEventListener('click', function(e) {
+            if (e.target === this) closeUploadModal();
+        });
+
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) closeEditModal();
+        });
+    </script>
+</body>
+</html>
