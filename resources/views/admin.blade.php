@@ -755,7 +755,6 @@
                         <label>Description</label>
                         <textarea class="form-control" id="uploadDescription"></textarea>
                     </div>
-
                     @if($tagsEnabled)
                     <div class="form-group">
                         <label>Tags</label>
