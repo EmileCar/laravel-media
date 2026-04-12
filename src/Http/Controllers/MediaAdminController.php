@@ -9,6 +9,7 @@ use Carone\Media\ValueObjects\MediaType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class MediaAdminController extends Controller
@@ -65,9 +66,9 @@ class MediaAdminController extends Controller
         }
 
         // Order by
-        $orderBy = $request->get('order_by', 'created_at');
-        $orderDir = $request->get('order_dir', 'desc');
-        $query->orderBy($orderBy, $orderDir);
+        $orderBy = $request->get('order_by', 'sort_order');
+        $orderDir = $request->get('order_dir', 'asc');
+        $query->orderBy($orderBy, $orderDir)->orderBy('id', 'asc');
 
         // Paginate
         $perPage = min((int) $request->get('per_page', 24), 100);
@@ -143,6 +144,37 @@ class MediaAdminController extends Controller
     }
 
     /**
+     * Get validation configuration for client-side validation
+     */
+    public function getValidationConfig(): JsonResponse
+    {
+        $validation = config('media.validation', []);
+        $enabledTypes = config('media.enabled_types', []);
+
+        $parsed = [];
+        foreach ($enabledTypes as $type) {
+            $rules = $validation[$type] ?? [];
+            $parsed[$type] = [
+                'max_size' => null,
+                'mimes' => [],
+            ];
+
+            foreach ($rules as $rule) {
+                if (str_starts_with($rule, 'max:')) {
+                    $parsed[$type]['max_size'] = (int) substr($rule, 4);
+                } elseif (str_starts_with($rule, 'mimes:')) {
+                    $parsed[$type]['mimes'] = explode(',', substr($rule, 6));
+                }
+            }
+        }
+
+        return response()->json([
+            'validation' => $parsed,
+            'enabled_types' => $enabledTypes,
+        ]);
+    }
+
+    /**
      * Get media statistics
      */
     public function getStats(): JsonResponse
@@ -164,6 +196,31 @@ class MediaAdminController extends Controller
         }
 
         return response()->json($stats);
+    }
+
+    /**
+     * Reorder media by updating sort_order for the given page of IDs
+     */
+    public function reorderMedia(Request $request): JsonResponse
+    {
+        $request->validate([
+            'ids'      => 'required|array|min:1|max:100',
+            'ids.*'    => 'integer|min:1',
+            'page'     => 'required|integer|min:1',
+            'per_page' => 'required|integer|min:1|max:100',
+        ]);
+
+        $ids = $request->ids;
+        $startPosition = ($request->page - 1) * $request->per_page + 1;
+
+        DB::transaction(function () use ($ids, $startPosition) {
+            foreach ($ids as $index => $id) {
+                MediaResource::where('id', $id)
+                    ->update(['sort_order' => $startPosition + $index]);
+            }
+        });
+
+        return response()->json(['success' => true, 'message' => 'Order saved']);
     }
 
     /**
@@ -191,6 +248,7 @@ class MediaAdminController extends Controller
 
         $result = [
             'id' => $media->id,
+            'sort_order' => $media->sort_order,
             'name' => $media->name,
             'display_name' => $media->display_name ?? $media->name,
             'description' => $media->description,
