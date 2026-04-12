@@ -26,6 +26,8 @@ if (config('media.admin.enabled', true)) {
             Route::get('stats', [MediaAdminController::class, 'getStats']);
             Route::get('media', [MediaAdminController::class, 'getAllMedia']);
             Route::get('tags', [MediaAdminController::class, 'getAllTags']);
+            Route::get('validation-config', [MediaAdminController::class, 'getValidationConfig']);
+            Route::put('media/reorder', [MediaAdminController::class, 'reorderMedia']);
             Route::put('media/{id}', [MediaAdminController::class, 'updateMedia']);
             Route::put('media/{id}/tags', [MediaAdminController::class, 'updateMediaTags']);
         });

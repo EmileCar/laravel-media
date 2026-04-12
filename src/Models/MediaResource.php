@@ -16,8 +16,19 @@ class MediaResource extends Model
     protected $fillable = [
         'type', 'source', 'path', 'url',
         'display_name', 'description', 'date', 'meta',
-        'thumbnail_path', 'thumbnail_url'
+        'thumbnail_path', 'thumbnail_url', 'sort_order',
     ];
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function (self $model) {
+            if (empty($model->sort_order)) {
+                $model->sort_order = (static::max('sort_order') ?? 0) + 1;
+            }
+        });
+    }
 
     protected $casts = [
         'meta' => 'array',

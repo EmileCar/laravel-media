@@ -362,6 +362,7 @@
         .modal-header {
             padding: 1.5rem;
             border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 0;
         }
 
         .modal-header h3 {
@@ -594,6 +595,296 @@
             color: #718096;
             font-size: 0.75rem;
         }
+
+        .modal-error-container {
+            margin-bottom: 1rem;
+            padding: 0.75rem 1rem;
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .btn-spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+        }
+
+        .slow-upload-hint {
+            font-size: 0.8rem;
+            color: #718096;
+            text-align: center;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .toast-notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(-0.5rem);
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+        }
+
+        .toast-notification.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .drag-handle {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 26px;
+            height: 26px;
+            background: rgba(0, 0, 0, 0.45);
+            color: white;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            opacity: 0;
+            transition: opacity 0.15s;
+            z-index: 11;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .media-card:hover .drag-handle {
+            opacity: 1;
+        }
+
+        .media-card.dragging {
+            opacity: 0.4;
+            border: 2px dashed #3182ce;
+        }
+
+        .media-card.drag-over {
+            border-color: #3182ce;
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.3);
+        }
+
+        .order-saving-indicator {
+            display: none;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            color: #718096;
+        }
+
+        .order-saving-indicator .spinner {
+            width: 14px;
+            height: 14px;
+            border-width: 2px;
+            margin: 0;
+        }
+
+        /* ── View toggle ───────────────────────────────────────────────────── */
+        .view-toggle {
+            display: flex;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .view-toggle-btn {
+            padding: 0.5rem 0.625rem;
+            background: white;
+            border: none;
+            cursor: pointer;
+            color: #718096;
+            transition: background 0.15s, color 0.15s;
+            display: flex;
+            align-items: center;
+            line-height: 0;
+        }
+
+        .view-toggle-btn + .view-toggle-btn {
+            border-left: 1px solid #e2e8f0;
+        }
+
+        .view-toggle-btn:hover {
+            background: #f7fafc;
+            color: #2d3748;
+        }
+
+        .view-toggle-btn.active {
+            background: #3182ce;
+            color: white;
+        }
+
+        /* ── List view ─────────────────────────────────────────────────────── */
+        .media-list {
+            background: white;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .media-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 1rem;
+            border-bottom: 1px solid #f0f4f8;
+            transition: background 0.15s;
+            position: relative;
+            border-left: 2px solid transparent;
+            border-right: 2px solid transparent;
+        }
+
+        .media-row:last-child {
+            border-bottom: none;
+        }
+
+        .media-row:hover {
+            background: #f7fafc;
+        }
+
+        .media-row.selected {
+            background: #ebf8ff;
+        }
+
+        .media-row.dragging {
+            opacity: 0.4;
+            background: #ebf8ff;
+        }
+
+        .media-row.drag-over-before {
+            border-top: 2px solid #3182ce;
+        }
+
+        .media-row.drag-over-after {
+            border-bottom: 2px solid #3182ce;
+        }
+
+        /* Drag handle + checkbox overrides for list rows (inline flex items) */
+        .media-row .drag-handle {
+            position: static;
+            width: 22px;
+            height: 22px;
+            background: transparent;
+            color: #a0aec0;
+            opacity: 1;
+            flex-shrink: 0;
+        }
+
+        .media-row:hover .drag-handle {
+            color: #4a5568;
+        }
+
+        .media-row .media-checkbox {
+            position: static;
+            width: 16px;
+            height: 16px;
+        }
+
+        .row-thumb {
+            width: 48px;
+            height: 48px;
+            border-radius: 0.25rem;
+            overflow: hidden;
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .row-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .row-thumb-icon {
+            font-size: 1.4rem;
+            line-height: 1;
+        }
+
+        .row-checkbox {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .row-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .row-name {
+            font-weight: 500;
+            font-size: 0.875rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .row-desc {
+            font-size: 0.75rem;
+            color: #718096;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-top: 0.1rem;
+        }
+
+        .row-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+            min-width: 120px;
+        }
+
+        .row-tags {
+            display: flex;
+            gap: 0.25rem;
+            flex-shrink: 0;
+            max-width: 200px;
+            overflow: hidden;
+        }
+
+        .row-actions {
+            display: flex;
+            gap: 0.25rem;
+            flex-shrink: 0;
+        }
+
+        .row-actions .action-btn {
+            padding: 0.375rem 0.625rem;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -668,6 +959,24 @@
                 <div class="search-box">
                     <input type="text" id="searchInput" placeholder="Search media by name or description..." oninput="debounceSearch()">
                 </div>
+                <div id="orderSavingIndicator" class="order-saving-indicator">
+                    <div class="spinner"></div>
+                    <span>Saving order...</span>
+                </div>
+                <div class="view-toggle">
+                    <button class="view-toggle-btn active" id="viewToggleGrid" onclick="setView('grid')" title="Grid view">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/>
+                            <rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/>
+                        </svg>
+                    </button>
+                    <button class="view-toggle-btn" id="viewToggleList" onclick="setView('list')" title="List view">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <rect x="1" y="2" width="14" height="2.5" rx="1"/><rect x="1" y="6.75" width="14" height="2.5" rx="1"/>
+                            <rect x="1" y="11.5" width="14" height="2.5" rx="1"/>
+                        </svg>
+                    </button>
+                </div>
                 <div class="toolbar-actions">
                     <button class="btn btn-primary" onclick="openUploadModal()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -675,7 +984,7 @@
                         </svg>
                         Upload Media
                     </button>
-                    <button class="btn btn-secondary" onclick="refreshMedia()">
+                    <button class="btn btn-secondary" onclick="refreshMedia(this)">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
                         </svg>
@@ -698,13 +1007,15 @@
     <!-- Bulk Actions Bar -->
     <div class="bulk-actions-bar" id="bulkActionsBar">
         <span id="selectedCount">0 selected</span>
-        <button class="btn btn-danger" onclick="bulkDelete()">
+        <button class="btn btn-danger" onclick="bulkDelete(this)">
             Delete Selected
         </button>
         <button class="btn btn-secondary" onclick="clearSelection()">
             Clear Selection
         </button>
     </div>
+
+    <div id="toastNotification" class="toast-notification"></div>
 
     <!-- Upload Modal -->
     <div class="modal" id="uploadModal">
@@ -714,6 +1025,7 @@
             </div>
             <form id="uploadForm" onsubmit="uploadMedia(event)">
                 <div class="modal-body">
+                    <div id="uploadModalError" class="modal-error-container"></div>
                     <div class="form-group">
                         <label>Source *</label>
                         <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
@@ -792,9 +1104,14 @@
                     </div>
                     </div> <!-- End of uploadFormFields container -->
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeUploadModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="uploadSubmitBtn" disabled>Upload</button>
+                <div class="modal-footer" style="flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button type="button" class="btn btn-secondary" onclick="closeUploadModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="uploadSubmitBtn" disabled>
+                            <span id="uploadBtnContent">Upload</span>
+                        </button>
+                    </div>
+                    <div id="slowUploadHint" class="slow-upload-hint">Loading large files may cause the request to be slower</div>
                 </div>
             </form>
         </div>
@@ -809,6 +1126,7 @@
             <form id="editForm" onsubmit="saveEdit(event)">
                 <input type="hidden" id="editMediaId">
                 <div class="modal-body">
+                    <div id="editModalError" class="modal-error-container"></div>
                     <div class="form-group">
                         <label>Name *</label>
                         <input type="text" class="form-control" id="editName" required>
@@ -828,7 +1146,9 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="submit" class="btn btn-primary" id="editSubmitBtn">
+                        <span id="editBtnContent">Save Changes</span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -854,15 +1174,204 @@
         let allTags = [];
         let searchTimeout = null;
         let uploadSource = 'local';
+        let validationConfig = {};
+        let slowHintTimer = null;
+        let draggedCardId = null;
+        let currentView = localStorage.getItem('mediaAdminView') || 'grid';
+        let lastMediaData = [];
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('viewToggleGrid').classList.toggle('active', currentView === 'grid');
+            document.getElementById('viewToggleList').classList.toggle('active', currentView === 'list');
             loadStats();
             loadMedia();
+            loadValidationConfig();
             @if($tagsEnabled)
             loadTags();
             @endif
         });
+
+        function loadValidationConfig() {
+            fetch(`${adminApiUrl}/validation-config`, {
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                validationConfig = data.validation || {};
+            })
+            .catch(() => {});
+        }
+
+        function showModalError(errorId, message) {
+            const el = document.getElementById(errorId);
+            if (el) {
+                el.textContent = message;
+                el.style.display = 'block';
+            }
+        }
+
+        function hideModalError(errorId) {
+            const el = document.getElementById(errorId);
+            if (el) {
+                el.textContent = '';
+                el.style.display = 'none';
+            }
+        }
+
+        function setButtonLoading(btnId, contentId, isLoading, originalText) {
+            const btn = document.getElementById(btnId);
+            const content = document.getElementById(contentId);
+            if (!btn || !content) return;
+            if (isLoading) {
+                btn.disabled = true;
+                content.innerHTML = '<span class="btn-spinner"></span>';
+            } else {
+                btn.disabled = false;
+                content.innerHTML = originalText;
+            }
+        }
+
+        // Generic loading for any button element (auto-detects light/dark style)
+        function setBtnLoading(btn, isLoading) {
+            if (!btn) return;
+            if (isLoading) {
+                btn.disabled = true;
+                btn.dataset.originalHtml = btn.innerHTML;
+                const isDark = btn.classList.contains('btn-primary') || btn.classList.contains('btn-danger');
+                const border = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.15)';
+                const top    = isDark ? 'white' : '#4a5568';
+                btn.innerHTML = `<span style="display:inline-block;width:13px;height:13px;border:2px solid ${border};border-top-color:${top};border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle;"></span>`;
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = btn.dataset.originalHtml || '';
+                delete btn.dataset.originalHtml;
+            }
+        }
+
+        function showToast(message, type = 'error') {
+            const toast = document.getElementById('toastNotification');
+            toast.textContent = message;
+            toast.className = `toast-notification toast-${type} active`;
+            setTimeout(() => toast.classList.remove('active'), 3500);
+        }
+
+        function setView(view) {
+            currentView = view;
+            localStorage.setItem('mediaAdminView', view);
+            document.getElementById('viewToggleGrid').classList.toggle('active', view === 'grid');
+            document.getElementById('viewToggleList').classList.toggle('active', view === 'list');
+            displayMedia(lastMediaData);
+        }
+
+        // ─── Drag-and-drop reordering ───────────────────────────────────────
+
+        function initDragAndDrop() {
+            document.querySelectorAll('[data-media-id]').forEach(card => {
+                const handle = card.querySelector('.drag-handle');
+                if (!handle) return;
+
+                handle.addEventListener('mousedown', () => {
+                    card.setAttribute('draggable', 'true');
+                });
+
+                card.addEventListener('dragstart', () => {
+                    draggedCardId = parseInt(card.dataset.mediaId);
+                    card.classList.add('dragging');
+                });
+
+                card.addEventListener('dragend', () => {
+                    card.removeAttribute('draggable');
+                    card.classList.remove('dragging');
+                    draggedCardId = null;
+                    clearDragOverClasses();
+                });
+
+                card.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const targetId = parseInt(card.dataset.mediaId);
+                    if (!draggedCardId || targetId === draggedCardId) return;
+                    clearDragOverClasses();
+
+                    if (currentView === 'list') {
+                        const rect = card.getBoundingClientRect();
+                        card.classList.add(e.clientY < rect.top + rect.height / 2 ? 'drag-over-before' : 'drag-over-after');
+                    } else {
+                        card.classList.add('drag-over');
+                    }
+                });
+
+                card.addEventListener('dragleave', (e) => {
+                    if (!card.contains(e.relatedTarget)) {
+                        card.classList.remove('drag-over', 'drag-over-before', 'drag-over-after');
+                    }
+                });
+
+                card.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    clearDragOverClasses();
+                    const targetId = parseInt(card.dataset.mediaId);
+                    if (!draggedCardId || draggedCardId === targetId) return;
+
+                    const rect = card.getBoundingClientRect();
+                    const insertBefore = e.clientY < rect.top + rect.height / 2;
+                    moveCardInDom(draggedCardId, targetId, insertBefore);
+                    saveOrder();
+                });
+            });
+        }
+
+        function clearDragOverClasses() {
+            document.querySelectorAll('[data-media-id]')
+                .forEach(c => c.classList.remove('drag-over', 'drag-over-before', 'drag-over-after'));
+        }
+
+        function moveCardInDom(srcId, targetId, insertBefore) {
+            const container = document.querySelector('.media-items-container');
+            if (!container) return;
+            const src = container.querySelector(`[data-media-id="${srcId}"]`);
+            const target = container.querySelector(`[data-media-id="${targetId}"]`);
+            if (!src || !target) return;
+            insertBefore ? container.insertBefore(src, target) : target.after(src);
+        }
+
+        function saveOrder() {
+            const container = document.querySelector('.media-items-container');
+            if (!container) return;
+
+            const ids = Array.from(container.querySelectorAll('[data-media-id]'))
+                .map(c => parseInt(c.dataset.mediaId));
+
+            setOrderSaving(true);
+
+            fetch(`${adminApiUrl}/media/reorder`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    ids,
+                    page: currentFilters.page,
+                    per_page: currentFilters.per_page
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                setOrderSaving(false);
+                if (!data.success) showToast('Failed to save order', 'error');
+            })
+            .catch(() => {
+                setOrderSaving(false);
+                showToast('Failed to save order', 'error');
+            });
+        }
+
+        function setOrderSaving(isSaving) {
+            const el = document.getElementById('orderSavingIndicator');
+            if (el) el.style.display = isSaving ? 'flex' : 'none';
+        }
 
         function loadStats() {
             fetch(`${adminApiUrl}/stats`, {
@@ -941,7 +1450,7 @@
             }, 500);
         }
 
-        function loadMedia() {
+        function loadMedia(onComplete) {
             const params = new URLSearchParams();
             Object.entries(currentFilters).forEach(([key, value]) => {
                 if (value) params.append(key, value);
@@ -957,6 +1466,7 @@
             .then(data => {
                 displayMedia(data.data);
                 displayPagination(data);
+                if (onComplete) onComplete();
             })
             .catch(error => {
                 document.getElementById('mediaContainer').innerHTML = `
@@ -964,10 +1474,12 @@
                         <p>Error loading media. Please try again.</p>
                     </div>
                 `;
+                if (onComplete) onComplete();
             });
         }
 
         function displayMedia(media) {
+            lastMediaData = media;
             const container = document.getElementById('mediaContainer');
 
             if (media.length === 0) {
@@ -982,11 +1494,20 @@
                 return;
             }
 
-            container.innerHTML = `
-                <div class="media-grid">
-                    ${media.map(item => createMediaCard(item)).join('')}
-                </div>
-            `;
+            if (currentView === 'list') {
+                container.innerHTML = `
+                    <div class="media-list media-items-container">
+                        ${media.map(item => createMediaRow(item)).join('')}
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="media-grid media-items-container">
+                        ${media.map(item => createMediaCard(item)).join('')}
+                    </div>
+                `;
+            }
+            initDragAndDrop();
         }
 
         function createMediaCard(media) {
@@ -996,6 +1517,13 @@
 
             return `
                 <div class="media-card ${isSelected ? 'selected' : ''}" data-media-id="${media.id}">
+                    <div class="drag-handle" title="Drag to reorder">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                            <circle cx="3.5" cy="2" r="1.2"/><circle cx="8.5" cy="2" r="1.2"/>
+                            <circle cx="3.5" cy="6" r="1.2"/><circle cx="8.5" cy="6" r="1.2"/>
+                            <circle cx="3.5" cy="10" r="1.2"/><circle cx="8.5" cy="10" r="1.2"/>
+                        </svg>
+                    </div>
                     <input type="checkbox" class="media-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleMediaSelection(${media.id})">
                     <div class="media-preview">
                         ${thumbnailUrl ? `<img src="${thumbnailUrl}" alt="${media.name}">` : `
@@ -1014,10 +1542,47 @@
                             </div>
                         ` : ''}
                         <div class="media-actions">
-                            <button class="action-btn" onclick="openEditModal(${media.id})">Edit</button>
+                            <button class="action-btn" onclick="openEditModal(${media.id}, this)">Edit</button>
                             <button class="action-btn" onclick="viewMedia(${media.id})">View</button>
-                            <button class="action-btn" onclick="deleteMedia(${media.id})">Delete</button>
+                            <button class="action-btn" onclick="deleteMedia(${media.id}, this)">Delete</button>
                         </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createMediaRow(media) {
+            const isSelected = selectedMedia.has(media.id);
+            const thumbnailUrl = media.thumbnail_url || getMediaPreview(media);
+            const fileSize = formatFileSize(media.file_size);
+
+            return `
+                <div class="media-row ${isSelected ? 'selected' : ''}" data-media-id="${media.id}">
+                    <div class="drag-handle" title="Drag to reorder">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                            <circle cx="3.5" cy="2" r="1.2"/><circle cx="8.5" cy="2" r="1.2"/>
+                            <circle cx="3.5" cy="6" r="1.2"/><circle cx="8.5" cy="6" r="1.2"/>
+                            <circle cx="3.5" cy="10" r="1.2"/><circle cx="8.5" cy="10" r="1.2"/>
+                        </svg>
+                    </div>
+                    <input type="checkbox" class="media-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleMediaSelection(${media.id})">
+                    <div class="row-thumb">
+                        ${thumbnailUrl
+                            ? `<img src="${thumbnailUrl}" alt="${media.display_name}">`
+                            : `<div class="row-thumb-icon">${getMediaIcon(media.type)}</div>`}
+                    </div>
+                    <div class="row-info">
+                        <div class="row-name" title="${media.display_name}">${media.display_name}</div>
+                        ${media.description ? `<div class="row-desc">${media.description}</div>` : ''}
+                    </div>
+                    <div class="row-meta">
+                        <span class="type-badge ${media.type}">${media.type}</span>
+                        ${fileSize ? `<span class="file-size">${fileSize}</span>` : ''}
+                    </div>
+                    <div class="row-actions">
+                        <button class="action-btn" onclick="openEditModal(${media.id}, this)">Edit</button>
+                        <button class="action-btn" onclick="viewMedia(${media.id})">View</button>
+                        <button class="action-btn" style="color: #e53e3e;" onclick="deleteMedia(${media.id}, this)">Delete</button>
                     </div>
                 </div>
             `;
@@ -1080,9 +1645,10 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function refreshMedia() {
+        function refreshMedia(btn) {
+            setBtnLoading(btn, true);
             loadStats();
-            loadMedia();
+            loadMedia(() => setBtnLoading(btn, false));
             @if($tagsEnabled)
             loadTags();
             @endif
@@ -1124,18 +1690,20 @@
 
         function clearSelection() {
             selectedMedia.clear();
-            document.querySelectorAll('.media-card').forEach(card => {
-                card.classList.remove('selected');
-                card.querySelector('.media-checkbox').checked = false;
+            document.querySelectorAll('[data-media-id]').forEach(item => {
+                item.classList.remove('selected');
+                const cb = item.querySelector('.media-checkbox');
+                if (cb) cb.checked = false;
             });
             updateBulkActionsBar();
         }
 
-        function bulkDelete() {
+        function bulkDelete(btn) {
             if (!confirm(`Are you sure you want to delete ${selectedMedia.size} media items? This action cannot be undone.`)) {
                 return;
             }
 
+            setBtnLoading(btn, true);
             const ids = Array.from(selectedMedia);
 
             fetch(`${apiBaseUrl}/bulk`, {
@@ -1150,13 +1718,16 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(`Successfully deleted ${data.deleted} of ${data.deleted + data.failed} items`);
                     clearSelection();
                     refreshMedia();
+                } else {
+                    setBtnLoading(btn, false);
+                    showToast(data.message || 'Error deleting media', 'error');
                 }
             })
-            .catch(error => {
-                alert('Error deleting media');
+            .catch(() => {
+                setBtnLoading(btn, false);
+                showToast('Error deleting media', 'error');
             });
         }
 
@@ -1188,6 +1759,11 @@
         }
 
         function closeUploadModal() {
+            clearTimeout(slowHintTimer);
+            document.getElementById('slowUploadHint').style.display = 'none';
+            document.getElementById('uploadBtnContent').textContent = 'Upload';
+            hideModalError('uploadModalError');
+
             document.getElementById('uploadModal').classList.remove('active');
             document.getElementById('uploadForm').reset();
             uploadTags = [];
@@ -1331,9 +1907,11 @@
 
         function uploadMedia(event) {
             event.preventDefault();
+            hideModalError('uploadModalError');
 
+            const type = document.getElementById('uploadType').value;
             const formData = new FormData();
-            formData.append('type', document.getElementById('uploadType').value);
+            formData.append('type', type);
             formData.append('source', uploadSource);
             formData.append('name', document.getElementById('uploadName').value);
             formData.append('description', document.getElementById('uploadDescription').value || '');
@@ -1341,14 +1919,32 @@
             if (uploadSource === 'local') {
                 const fileInput = document.getElementById('uploadFile');
                 if (!fileInput.files[0]) {
-                    alert('Please select a file to upload');
+                    showModalError('uploadModalError', 'Please select a file to upload');
                     return;
                 }
-                formData.append('file', fileInput.files[0]);
+
+                const file = fileInput.files[0];
+                const typeConfig = validationConfig[type];
+                if (typeConfig) {
+                    if (typeConfig.max_size && file.size > typeConfig.max_size * 1024) {
+                        const maxMB = (typeConfig.max_size / 1024).toFixed(0);
+                        showModalError('uploadModalError', `File size exceeds the maximum allowed size of ${maxMB}MB`);
+                        return;
+                    }
+                    if (typeConfig.mimes && typeConfig.mimes.length > 0) {
+                        const ext = file.name.split('.').pop().toLowerCase();
+                        if (!typeConfig.mimes.includes(ext)) {
+                            showModalError('uploadModalError', `Invalid file type. Allowed types: ${typeConfig.mimes.join(', ')}`);
+                            return;
+                        }
+                    }
+                }
+
+                formData.append('file', file);
 
                 // Handle thumbnail options for local files
                 const autoThumbnail = document.getElementById('uploadAutoThumbnail').checked;
-                if (document.getElementById('uploadType').value === 'image') {
+                if (type === 'image') {
                     formData.append('generate_thumbnail', autoThumbnail ? '1' : '0');
                 }
 
@@ -1365,7 +1961,7 @@
             } else {
                 const url = document.getElementById('uploadUrl').value;
                 if (!url) {
-                    alert('Please enter a URL');
+                    showModalError('uploadModalError', 'Please enter a URL');
                     return;
                 }
                 formData.append('url', url);
@@ -1384,6 +1980,11 @@
 
             uploadTags.forEach(tag => formData.append('tags[]', tag));
 
+            setButtonLoading('uploadSubmitBtn', 'uploadBtnContent', true, 'Upload');
+            slowHintTimer = setTimeout(() => {
+                document.getElementById('slowUploadHint').style.display = 'block';
+            }, 10000);
+
             fetch(`${apiBaseUrl}/upload`, {
                 method: 'POST',
                 headers: {
@@ -1394,17 +1995,23 @@
             })
             .then(response => response.json())
             .then(data => {
+                clearTimeout(slowHintTimer);
+                document.getElementById('slowUploadHint').style.display = 'none';
+                setButtonLoading('uploadSubmitBtn', 'uploadBtnContent', false, 'Upload');
+
                 if (data.success || data.id) {
-                    alert('Media uploaded successfully!');
                     closeUploadModal();
                     refreshMedia();
                 } else {
-                    alert('Error uploading media: ' + (data.message || 'Unknown error'));
+                    showModalError('uploadModalError', data.message || 'Error uploading media');
                 }
             })
             .catch(error => {
+                clearTimeout(slowHintTimer);
+                document.getElementById('slowUploadHint').style.display = 'none';
+                setButtonLoading('uploadSubmitBtn', 'uploadBtnContent', false, 'Upload');
                 console.error('Upload error:', error);
-                alert('Error uploading media');
+                showModalError('uploadModalError', 'Error uploading media. Please try again.');
             });
         }
 
@@ -1432,8 +2039,8 @@
             }
         }
 
-        function openEditModal(mediaId) {
-            // Fetch media details
+        function openEditModal(mediaId, btn) {
+            setBtnLoading(btn, true);
             fetch(`${apiBaseUrl}/${mediaId}`, {
                 headers: {
                     'Accept': 'application/json'
@@ -1441,17 +2048,24 @@
             })
             .then(response => response.json())
             .then(response => {
-                const data = response.data; // Extract nested data object
+                setBtnLoading(btn, false);
+                const data = response.data;
                 document.getElementById('editMediaId').value = data.id;
                 document.getElementById('editName').value = data.name;
                 document.getElementById('editDescription').value = data.description || '';
                 editTags = data.tags;
                 updateEditTagsDisplay();
                 document.getElementById('editModal').classList.add('active');
+            })
+            .catch(() => {
+                setBtnLoading(btn, false);
+                showToast('Failed to load media details', 'error');
             });
         }
 
         function closeEditModal() {
+            hideModalError('editModalError');
+            document.getElementById('editBtnContent').textContent = 'Save Changes';
             document.getElementById('editModal').classList.remove('active');
             editTags = [];
         }
@@ -1490,12 +2104,15 @@
 
         function saveEdit(event) {
             event.preventDefault();
+            hideModalError('editModalError');
 
             const mediaId = document.getElementById('editMediaId').value;
             const data = {
                 name: document.getElementById('editName').value,
                 description: document.getElementById('editDescription').value,
             };
+
+            setButtonLoading('editSubmitBtn', 'editBtnContent', true, 'Save Changes');
 
             // Update basic info
             fetch(`${adminApiUrl}/media/${mediaId}`, {
@@ -1522,14 +2139,17 @@
             })
             .then(response => response.json())
             .then(data => {
+                setButtonLoading('editSubmitBtn', 'editBtnContent', false, 'Save Changes');
                 if (data.success) {
-                    alert('Media updated successfully!');
                     closeEditModal();
                     refreshMedia();
+                } else {
+                    showModalError('editModalError', data.message || 'Error updating media');
                 }
             })
             .catch(error => {
-                alert('Error updating media');
+                setButtonLoading('editSubmitBtn', 'editBtnContent', false, 'Save Changes');
+                showModalError('editModalError', 'Error updating media. Please try again.');
             });
         }
 
@@ -1551,10 +2171,12 @@
             });
         }
 
-        function deleteMedia(mediaId) {
+        function deleteMedia(mediaId, btn) {
             if (!confirm('Are you sure you want to delete this media? This action cannot be undone.')) {
                 return;
             }
+
+            setBtnLoading(btn, true);
 
             fetch(`${apiBaseUrl}/${mediaId}`, {
                 method: 'DELETE',
@@ -1566,12 +2188,15 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Media deleted successfully!');
                     refreshMedia();
+                } else {
+                    setBtnLoading(btn, false);
+                    showToast(data.message || 'Error deleting media', 'error');
                 }
             })
-            .catch(error => {
-                alert('Error deleting media');
+            .catch(() => {
+                setBtnLoading(btn, false);
+                showToast('Error deleting media', 'error');
             });
         }
 

@@ -122,6 +122,8 @@ class GetMediaService implements GetMediaServiceInterface, AppliesSearchCriteria
             }
         }
 
+        $query->orderBy('sort_order', 'asc')->orderBy('id', 'asc');
+
         return $query;
     }
 
