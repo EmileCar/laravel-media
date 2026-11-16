@@ -26,7 +26,13 @@ class UploadImageStrategy extends UploadMediaStrategy
             return null;
         }
 
-        $image = Image::read($file);
+        try {
+            $image = Image::read($file);
+        } catch (\Throwable $e) {
+            // Formats the image driver cannot decode (e.g. HEIC with GD) are stored unprocessed
+            \Log::warning('Image could not be processed, storing original: ' . $e->getMessage());
+            return null;
+        }
 
         if (!empty($config['resize']['enabled'])) {
             $image = ImageProcessor::applyResize($image, $config['resize']);
@@ -38,8 +44,12 @@ class UploadImageStrategy extends UploadMediaStrategy
             $image = ImageProcessor::applyWatermark($image, $config['watermark']);
         }
 
-        // Encode and save to temp file
-        $ext = $config['convert_format'] ?? $file->getClientOriginalExtension();
+        // Encode and save to temp file. Only formats that can be encoded are kept;
+        // other source formats (heic, tiff, ...) are stored unprocessed.
+        $ext = strtolower($config['convert_format'] ?? $file->getClientOriginalExtension());
+        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
+            return null;
+        }
         $quality = $config['quality'] ?? 85;
         $tempPath = tempnam(sys_get_temp_dir(), 'processed_img_') . '.' . $ext;
 

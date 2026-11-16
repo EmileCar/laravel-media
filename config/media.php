@@ -14,6 +14,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Package Routes
+    |--------------------------------------------------------------------------
+    | When disabled, the package registers NO routes at all: no media API,
+    | no public file serving routes (/media/...) and no admin panel.
+    |
+    | Disable the routes for private media: store files on a private disk
+    | (e.g. 'local') and serve them from your own (authenticated) routes with
+    | Media::stream(), Media::streamThumbnail() and Media::download().
+    |---------------------------------------------------------------------------
+    */
+    'routes' => [
+        'enabled' => env('MEDIA_ROUTES_ENABLED', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Default Directory Structure
     |--------------------------------------------------------------------------
     | Configure where uploaded media should be placed on the disk.
@@ -93,6 +109,11 @@ return [
         // Number of minutes to cache thumbnails when served via a controller
         // Set to null to disable caching
         'cache_minutes' => 60,
+
+        // Resize/convert a supplied thumbnail file (e.g. a video poster frame
+        // generated in the browser) with the 'processing.thumbnail' settings.
+        // When false, the supplied file is stored as-is.
+        'process_supplied' => env('MEDIA_PROCESS_SUPPLIED_THUMBNAILS', false),
     ],
 
     /*
@@ -113,10 +134,60 @@ return [
     |---------------------------------------------------------------------------
     */
     'validation' => [
-        'image' => ['mimes:jpg,jpeg,png,gif,webp', 'max:5120'], // 5MB
-        'video' => ['mimes:mp4,mov,avi', 'max:20480'], // 20MB
-        'audio' => ['mimes:mp3,wav', 'max:10240'], // 10MB
-        'document' => ['mimes:pdf,doc,docx,xls,xlsx', 'max:10240'], // 10MB
+        'image' => ['max:5120'], // 5MB
+        'video' => ['max:20480'], // 20MB
+        'audio' => ['max:10240'], // 10MB
+        'document' => ['max:10240'], // 10MB
+        'other' => ['max:10240'], // 10MB
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Media Type Definitions
+    |--------------------------------------------------------------------------
+    | Allowed file extensions and MIME types per media type.
+    | - 'extensions': the extensions accepted for the type (lowercase). They are
+    |   also used to auto-detect the type of an uploaded file. When an
+    |   extension is listed for several types, the first type wins.
+    | - 'mime_types': the detected MIME type must match one of these. Wildcards
+    |   are allowed ('image/*'). An empty list disables the MIME check.
+    |
+    | 'other' is meant for files that are only stored and downloaded (archives,
+    | GPS tracks, ...). The banned_file_types list always applies.
+    | Types missing here fall back to the package defaults (see MediaType).
+    |---------------------------------------------------------------------------
+    */
+    'types' => [
+        'image' => [
+            'extensions' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', 'avif', 'bmp', 'tif', 'tiff'],
+            'mime_types' => ['image/*'],
+        ],
+        'video' => [
+            'extensions' => ['mp4', 'mov', 'avi', 'mkv', 'webm', 'm4v', '3gp'],
+            'mime_types' => ['video/*'],
+        ],
+        'audio' => [
+            'extensions' => ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'oga', 'flac', 'opus'],
+            'mime_types' => ['audio/*'],
+        ],
+        'document' => [
+            'extensions' => ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp', 'rtf', 'txt', 'csv'],
+            'mime_types' => [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.ms-*',
+                'application/vnd.openxmlformats-officedocument.*',
+                'application/vnd.oasis.opendocument.*',
+                'application/CDFV2',
+                'application/zip',
+                'application/rtf',
+                'text/*',
+            ],
+        ],
+        'other' => [
+            'extensions' => ['zip', '7z', 'rar', 'tar', 'gz', 'gpx', 'kml', 'kmz', 'json', 'xml', 'epub', 'eml', 'vcf', 'ics'],
+            'mime_types' => [],
+        ],
     ],
 
     /*
@@ -127,7 +198,7 @@ return [
     | Others will be ignored.
     |---------------------------------------------------------------------------
     */
-    'enabled_types' => ['image', 'video', 'audio', 'document'],
+    'enabled_types' => ['image', 'video', 'audio', 'document', 'other'],
 
     /*
     |--------------------------------------------------------------------------

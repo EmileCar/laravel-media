@@ -54,13 +54,13 @@ class StoreMediaService implements StoreMediaServiceInterface
             throw new \InvalidArgumentException("File type '.{$extension}' is not allowed");
         }
 
-        if (!in_array($extension, $mediaType->getSupportedExtensions())) {
+        if (!$mediaType->supportsExtension($extension)) {
             $supportedTypes = implode(', ', $mediaType->getSupportedExtensions());
             throw new \InvalidArgumentException("File extension '.{$extension}' is not supported for {$mediaType->value}. Supported types: {$supportedTypes}");
         }
 
         $mimeType = $file->getMimeType();
-        if (!in_array($mimeType, $mediaType->getSupportedMimeTypes())) {
+        if (!$mediaType->acceptsMimeType($mimeType)) {
             throw new \InvalidArgumentException("MIME type '{$mimeType}' is not supported for {$mediaType->value}");
         }
 

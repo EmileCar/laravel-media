@@ -13,6 +13,8 @@ use Carone\Media\ValueObjects\MediaType;
 use Carone\Media\ValueObjects\StoreMediaData;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Facade interface for the media system
@@ -63,11 +65,38 @@ class MediaManager
     }
 
     /**
-     * Serve thumbnail by media path
+     * Serve thumbnail by media ID
      */
-    public function thumbnail(string $path): BinaryFileResponse
+    public function thumbnail(int $id): BinaryFileResponse
     {
-        return $this->getService->serveThumbnail($path);
+        return $this->getService->serveThumbnail($id);
+    }
+
+    /**
+     * Stream a media file inline by media ID (any disk, incl. private disks).
+     * Supports HTTP Range requests (206 Partial Content) for video/audio seeking.
+     * Meant for the application's own (authenticated) routes.
+     */
+    public function stream(int $id, ?Request $request = null): Response
+    {
+        return $this->getService->streamMedia($id, $request);
+    }
+
+    /**
+     * Stream a media file as a download (Content-Disposition: attachment).
+     * The filename defaults to the original upload name.
+     */
+    public function download(int $id, ?string $filename = null, ?Request $request = null): Response
+    {
+        return $this->getService->streamMedia($id, $request, download: true, filename: $filename);
+    }
+
+    /**
+     * Stream the stored thumbnail of a media resource by media ID
+     */
+    public function streamThumbnail(int $id, ?Request $request = null): Response
+    {
+        return $this->getService->streamThumbnail($id, $request);
     }
 
     /**

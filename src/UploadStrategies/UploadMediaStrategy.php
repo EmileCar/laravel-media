@@ -3,6 +3,7 @@
 namespace Carone\Media\UploadStrategies;
 
 use Carone\Media\Models\MediaResource;
+use Carone\Media\Utilities\ImageProcessor;
 use Carone\Media\Utilities\MediaModel;
 use Carone\Media\Utilities\MediaStorageHelper;
 use Carone\Media\Utilities\MediaUtilities;
@@ -148,10 +149,8 @@ class UploadMediaStrategy
             $disk = config('media.thumbnails.disk') ?? config('media.disk');
             $directory = 'external-thumbnails';
             $filename = uniqid('thumb_', true);
-            $extension = $data->thumbnailFile->getClientOriginalExtension();
 
-            $thumbnailRef = new MediaFileReference($filename, $extension, $disk, $directory);
-            MediaStorageHelper::storeThumbnailFile($thumbnailRef, file_get_contents($data->thumbnailFile->getRealPath()));
+            $thumbnailRef = $this->putSuppliedThumbnail($data->thumbnailFile, $filename, $disk, $directory);
 
             $result['path'] = $thumbnailRef->getPath();
 
@@ -186,16 +185,40 @@ class UploadMediaStrategy
             $disk = config('media.thumbnails.disk') ?? config('media.disk');
             $directory = $mainFileReference->directory;
             $filename = $mainFileReference->filename . '_thumb';
-            $extension = $thumbnailFile->getClientOriginalExtension();
 
-            $thumbnailRef = new MediaFileReference($filename, $extension, $disk, $directory);
-            MediaStorageHelper::storeThumbnailFile($thumbnailRef, file_get_contents($thumbnailFile->getRealPath()));
-
-            return $thumbnailRef;
+            return $this->putSuppliedThumbnail($thumbnailFile, $filename, $disk, $directory);
         } catch (\Exception $e) {
             \Log::warning('Failed to store thumbnail file: ' . $e->getMessage());
             return null;
         }
+    }
+
+    /**
+     * Store a supplied thumbnail file (e.g. a video poster frame generated in the browser).
+     * When 'media.thumbnails.process_supplied' is enabled, the file is resized/converted
+     * with the 'media.processing.thumbnail' settings; otherwise it is stored as-is.
+     */
+    protected function putSuppliedThumbnail($thumbnailFile, string $filename, string $disk, string $directory): MediaFileReference
+    {
+        $thumbnailConfig = config('media.processing.thumbnail', []);
+
+        if (config('media.thumbnails.process_supplied', false) && !empty($thumbnailConfig)) {
+            $extension = $thumbnailConfig['convert_format'] ?? 'jpg';
+            $thumbnailRef = new MediaFileReference($filename, $extension, $disk, $directory);
+
+            try {
+                ImageProcessor::generateThumbnail($thumbnailFile->getRealPath(), $thumbnailRef, $thumbnailConfig);
+                return $thumbnailRef;
+            } catch (\Throwable $e) {
+                \Log::warning('Failed to process supplied thumbnail, storing original: ' . $e->getMessage());
+            }
+        }
+
+        $extension = strtolower($thumbnailFile->getClientOriginalExtension()) ?: 'jpg';
+        $thumbnailRef = new MediaFileReference($filename, $extension, $disk, $directory);
+        MediaStorageHelper::storeThumbnailFile($thumbnailRef, file_get_contents($thumbnailFile->getRealPath()));
+
+        return $thumbnailRef;
     }
 
     public function getMediaFile(MediaResource $media): BinaryFileResponse

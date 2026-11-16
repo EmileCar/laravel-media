@@ -41,7 +41,7 @@ final class StoreExternalMediaData extends StoreMediaData
             'url' => 'required|url|max:1000',
             'thumbnail_url' => 'nullable|url|max:1000',
             'thumbnail_path' => 'nullable|string|max:500',
-            'thumbnail_file' => 'nullable|file',
+            'thumbnail_file' => 'nullable|file|image',
             'tags' => 'array',
             'tags.*' => 'string|max:50',
         ]);

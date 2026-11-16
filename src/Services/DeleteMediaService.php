@@ -19,11 +19,11 @@ class DeleteMediaService implements DeleteMediaServiceInterface
             $fileReference = $media->loadFileReference();
             if (!empty($fileReference)) {
                 MediaStorageHelper::deleteFile($fileReference);
+            }
 
-                $thumbnailFileReference = $media->loadThumbnailFileReference();
-                if (!empty($thumbnailFileReference)) {
-                    MediaStorageHelper::deleteFile($thumbnailFileReference);
-                }
+            $thumbnailFileReference = $media->loadThumbnailFileReference();
+            if (!empty($thumbnailFileReference)) {
+                MediaStorageHelper::deleteThumbnailFile($thumbnailFileReference);
             }
 
             $media->delete();

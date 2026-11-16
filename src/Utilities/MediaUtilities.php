@@ -30,54 +30,82 @@ class MediaUtilities
      */
     public static function getMimeType(string $extension, string $defaultType = 'application/octet-stream'): string
     {
-        $mimeTypes = [
-            'jpg' => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'png' => 'image/png',
-            'gif' => 'image/gif',
-            'webp' => 'image/webp',
-            'mp4' => 'video/mp4',
-            'mov' => 'video/quicktime',
-            'avi' => 'video/x-msvideo',
-            'mp3' => 'audio/mpeg',
-            'wav' => 'audio/wav',
-            'pdf' => 'application/pdf',
-            'doc' => 'application/msword',
-            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'xls' => 'application/vnd.ms-excel',
-            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        ];
-
-        return $mimeTypes[$extension] ?? $defaultType;
+        return self::MIME_TYPES[strtolower($extension)] ?? $defaultType;
     }
+
+    /**
+     * Content types used when serving files, by extension
+     */
+    private const MIME_TYPES = [
+        // Images
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png' => 'image/png',
+        'gif' => 'image/gif',
+        'webp' => 'image/webp',
+        'heic' => 'image/heic',
+        'heif' => 'image/heif',
+        'avif' => 'image/avif',
+        'bmp' => 'image/bmp',
+        'tif' => 'image/tiff',
+        'tiff' => 'image/tiff',
+        // Video
+        'mp4' => 'video/mp4',
+        'm4v' => 'video/x-m4v',
+        'mov' => 'video/quicktime',
+        'avi' => 'video/x-msvideo',
+        'mkv' => 'video/x-matroska',
+        'webm' => 'video/webm',
+        '3gp' => 'video/3gpp',
+        // Audio
+        'mp3' => 'audio/mpeg',
+        'wav' => 'audio/wav',
+        'm4a' => 'audio/mp4',
+        'aac' => 'audio/aac',
+        'ogg' => 'audio/ogg',
+        'oga' => 'audio/ogg',
+        'flac' => 'audio/flac',
+        'opus' => 'audio/opus',
+        // Documents
+        'pdf' => 'application/pdf',
+        'doc' => 'application/msword',
+        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'xls' => 'application/vnd.ms-excel',
+        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'ppt' => 'application/vnd.ms-powerpoint',
+        'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'odt' => 'application/vnd.oasis.opendocument.text',
+        'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
+        'odp' => 'application/vnd.oasis.opendocument.presentation',
+        'rtf' => 'application/rtf',
+        'txt' => 'text/plain',
+        'csv' => 'text/csv',
+        // Other
+        'zip' => 'application/zip',
+        '7z' => 'application/x-7z-compressed',
+        'rar' => 'application/vnd.rar',
+        'tar' => 'application/x-tar',
+        'gz' => 'application/gzip',
+        'gpx' => 'application/gpx+xml',
+        'kml' => 'application/vnd.google-earth.kml+xml',
+        'kmz' => 'application/vnd.google-earth.kmz',
+        'json' => 'application/json',
+        'xml' => 'application/xml',
+        'epub' => 'application/epub+zip',
+        'eml' => 'message/rfc822',
+        'vcf' => 'text/vcard',
+        'ics' => 'text/calendar',
+    ];
 
     /**
      * Auto-detect media type from file extension
      */
     public static function autoDetectTypeFromExtension($extension): MediaType
     {
-        $extension = strtolower($extension);
+        $type = MediaType::fromExtension((string) $extension);
 
-        $typeMap = [
-            'jpg' => MediaType::IMAGE,
-            'jpeg' => MediaType::IMAGE,
-            'png' => MediaType::IMAGE,
-            'gif' => MediaType::IMAGE,
-            'webp' => MediaType::IMAGE,
-            'mp4' => MediaType::VIDEO,
-            'mov' => MediaType::VIDEO,
-            'avi' => MediaType::VIDEO,
-            'mp3' => MediaType::AUDIO,
-            'wav' => MediaType::AUDIO,
-            'pdf' => MediaType::DOCUMENT,
-            'doc' => MediaType::DOCUMENT,
-            'docx' => MediaType::DOCUMENT,
-            'xls' => MediaType::DOCUMENT,
-            'xlsx' => MediaType::DOCUMENT,
-        ];
-
-        if (isset($typeMap[$extension])) {
-            return $typeMap[$extension];
+        if ($type !== null) {
+            return $type;
         }
 
         throw new \InvalidArgumentException("Could not auto-detect media type for extension: {$extension}");

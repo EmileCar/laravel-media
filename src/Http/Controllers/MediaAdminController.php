@@ -166,6 +166,12 @@ class MediaAdminController extends Controller
                     $parsed[$type]['mimes'] = explode(',', substr($rule, 6));
                 }
             }
+
+            // Without a 'mimes' rule, the allowed extensions come from the type definition
+            $mediaType = MediaType::tryFrom($type);
+            if (empty($parsed[$type]['mimes']) && $mediaType !== null) {
+                $parsed[$type]['mimes'] = $mediaType->getSupportedExtensions();
+            }
         }
 
         return response()->json([

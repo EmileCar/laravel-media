@@ -2,15 +2,49 @@
 
 namespace Carone\Media\ValueObjects;
 
-use Carone\Media\UploadStrategies\UploadImageStrategy;
-use Carone\Media\UploadStrategies\UploadMediaStrategy;
-
 enum MediaType: string
 {
     case IMAGE = 'image';
     case VIDEO = 'video';
     case AUDIO = 'audio';
     case DOCUMENT = 'document';
+    case OTHER = 'other';
+
+    /**
+     * Default type definitions, used when 'media.types.{type}' is not configured
+     */
+    private const DEFAULTS = [
+        'image' => [
+            'extensions' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', 'avif', 'bmp', 'tif', 'tiff'],
+            'mime_types' => ['image/*'],
+        ],
+        'video' => [
+            'extensions' => ['mp4', 'mov', 'avi', 'mkv', 'webm', 'm4v', '3gp'],
+            'mime_types' => ['video/*'],
+        ],
+        'audio' => [
+            'extensions' => ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'oga', 'flac', 'opus'],
+            'mime_types' => ['audio/*'],
+        ],
+        'document' => [
+            'extensions' => ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp', 'rtf', 'txt', 'csv'],
+            'mime_types' => [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.ms-*',
+                'application/vnd.openxmlformats-officedocument.*',
+                'application/vnd.oasis.opendocument.*',
+                'application/CDFV2',
+                'application/zip',
+                'application/rtf',
+                'text/*',
+            ],
+        ],
+        'other' => [
+            'extensions' => ['zip', '7z', 'rar', 'tar', 'gz', 'gpx', 'kml', 'kmz', 'json', 'xml', 'epub', 'eml', 'vcf', 'ics'],
+            'mime_types' => [],
+        ],
+    ];
 
     /**
      * Get validation rules for this media type
@@ -49,34 +83,76 @@ enum MediaType: string
     }
 
     /**
-     * Get MIME types that this media type supports
+     * Get MIME types that this media type supports (may contain wildcards like 'image/*').
+     * An empty array means the MIME type is not checked.
      */
     public function getSupportedMimeTypes(): array
     {
-        return match($this) {
-            self::IMAGE => ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
-            self::VIDEO => ['video/mp4', 'video/quicktime', 'video/x-msvideo'],
-            self::AUDIO => ['audio/mpeg', 'audio/wav', 'audio/mp3'],
-            self::DOCUMENT => [
-                'application/pdf',
-                'application/msword',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'application/vnd.ms-excel',
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            ],
-        };
+        return $this->definition('mime_types');
     }
 
     /**
-     * Get file extensions that this media type supports
+     * Get file extensions that this media type supports (lowercase)
      */
     public function getSupportedExtensions(): array
     {
-        return match($this) {
-            self::IMAGE => ['jpg', 'jpeg', 'png', 'gif', 'webp'],
-            self::VIDEO => ['mp4', 'mov', 'avi'],
-            self::AUDIO => ['mp3', 'wav'],
-            self::DOCUMENT => ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
-        };
+        return array_map('strtolower', $this->definition('extensions'));
+    }
+
+    /**
+     * Check if an extension is supported by this type (case-insensitive)
+     */
+    public function supportsExtension(string $extension): bool
+    {
+        return in_array(strtolower($extension), $this->getSupportedExtensions(), true);
+    }
+
+    /**
+     * Check if a detected MIME type is accepted by this type.
+     * Always true when no MIME types are configured.
+     */
+    public function acceptsMimeType(?string $mimeType): bool
+    {
+        $allowed = $this->getSupportedMimeTypes();
+        if (empty($allowed)) {
+            return true;
+        }
+        if ($mimeType === null || $mimeType === '') {
+            return false;
+        }
+
+        $mimeType = strtolower($mimeType);
+        foreach ($allowed as $pattern) {
+            $pattern = strtolower($pattern);
+            if ($pattern === $mimeType) {
+                return true;
+            }
+            if (str_ends_with($pattern, '*') && str_starts_with($mimeType, substr($pattern, 0, -1))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Find the first media type that supports the given extension
+     */
+    public static function fromExtension(string $extension): ?self
+    {
+        foreach (self::cases() as $type) {
+            if ($type->supportsExtension($extension)) {
+                return $type;
+            }
+        }
+
+        return null;
+    }
+
+    private function definition(string $key): array
+    {
+        $configured = config("media.types.{$this->value}.{$key}");
+
+        return is_array($configured) ? $configured : self::DEFAULTS[$this->value][$key];
     }
 }
