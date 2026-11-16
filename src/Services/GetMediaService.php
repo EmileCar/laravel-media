@@ -9,10 +9,13 @@ use Carone\Media\Contracts\GetMediaServiceInterface;
 use Carone\Media\Models\MediaResource;
 use Carone\Media\Utilities\MediaModel;
 use Carone\Media\Utilities\MediaStorageHelper;
+use Carone\Media\Utilities\MediaStreamer;
 use Carone\Media\Utilities\MediaUtilities;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class GetMediaService implements GetMediaServiceInterface, AppliesSearchCriteria
 {
@@ -78,6 +81,50 @@ class GetMediaService implements GetMediaServiceInterface, AppliesSearchCriteria
             'Content-Type' => $mimeType,
             'Cache-Control' => "public, max-age=" . ($cacheMinutes * 60),
         ]);
+    }
+
+    public function streamMedia(int $id, ?Request $request = null, bool $download = false, ?string $filename = null): Response
+    {
+        $media = MediaModel::findOrFail($id);
+
+        $fileReference = $media->loadFileReference();
+        if (!$fileReference) {
+            abort(404, 'Media file not found');
+        }
+
+        $metaMime = is_array($media->meta) ? ($media->meta['mime_type'] ?? null) : null;
+        $contentType = MediaUtilities::getMimeType($fileReference->extension, $metaMime ?: 'application/octet-stream');
+        $originalName = is_array($media->meta) ? ($media->meta['original_name'] ?? null) : null;
+
+        return MediaStreamer::response(
+            disk: $fileReference->disk,
+            path: $fileReference->getStoragePath(),
+            contentType: $contentType,
+            request: $request ?? request(),
+            disposition: $download ? MediaStreamer::ATTACHMENT : MediaStreamer::INLINE,
+            filename: $filename ?? $originalName ?? $fileReference->getFileNameWithExtension(),
+            cacheMinutes: config('media.cache_minutes'),
+        );
+    }
+
+    public function streamThumbnail(int $id, ?Request $request = null): Response
+    {
+        $media = MediaModel::findOrFail($id);
+
+        $fileReference = $media->loadThumbnailFileReference();
+        if (!$fileReference) {
+            abort(404, 'Thumbnail not found');
+        }
+
+        return MediaStreamer::response(
+            disk: $fileReference->disk,
+            path: $fileReference->getThumbnailStoragePath(),
+            contentType: MediaUtilities::getMimeType($fileReference->extension, 'image/jpeg'),
+            request: $request ?? request(),
+            disposition: MediaStreamer::INLINE,
+            filename: $fileReference->getFileNameWithExtension(),
+            cacheMinutes: config('media.thumbnails.cache_minutes'),
+        );
     }
 
     public function search(SearchCriteria $criteria, ?int $offset = null, ?int $limit = null): LengthAwarePaginator

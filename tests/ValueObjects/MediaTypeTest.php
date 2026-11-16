@@ -10,7 +10,7 @@ class MediaTypeTest extends TestCase
     /** @test */
     public function it_has_all_expected_enum_cases(): void
     {
-        $expectedCases = ['image', 'video', 'audio', 'document'];
+        $expectedCases = ['image', 'video', 'audio', 'document', 'other'];
         $actualCases = array_map(fn($case) => $case->value, MediaType::cases());
 
         $this->assertSame($expectedCases, $actualCases);
@@ -112,23 +112,81 @@ class MediaTypeTest extends TestCase
     /** @test */
     public function it_returns_correct_supported_mime_types(): void
     {
-        $imageMimes = MediaType::IMAGE->getSupportedMimeTypes();
-        $this->assertContains('image/jpeg', $imageMimes);
-        $this->assertContains('image/png', $imageMimes);
-        $this->assertContains('image/gif', $imageMimes);
-        $this->assertContains('image/webp', $imageMimes);
+        foreach (['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic'] as $mime) {
+            $this->assertTrue(MediaType::IMAGE->acceptsMimeType($mime), $mime);
+        }
+        foreach (['video/mp4', 'video/quicktime', 'video/x-matroska', 'video/webm'] as $mime) {
+            $this->assertTrue(MediaType::VIDEO->acceptsMimeType($mime), $mime);
+        }
+        foreach (['audio/mpeg', 'audio/wav', 'audio/x-m4a'] as $mime) {
+            $this->assertTrue(MediaType::AUDIO->acceptsMimeType($mime), $mime);
+        }
+        foreach ([
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'application/vnd.oasis.opendocument.text',
+            'text/plain',
+        ] as $mime) {
+            $this->assertTrue(MediaType::DOCUMENT->acceptsMimeType($mime), $mime);
+        }
 
-        $videoMimes = MediaType::VIDEO->getSupportedMimeTypes();
-        $this->assertContains('video/mp4', $videoMimes);
-        $this->assertContains('video/quicktime', $videoMimes);
+        $this->assertFalse(MediaType::IMAGE->acceptsMimeType('application/x-php'));
+        $this->assertFalse(MediaType::VIDEO->acceptsMimeType('image/jpeg'));
+        $this->assertFalse(MediaType::DOCUMENT->acceptsMimeType('application/x-msdownload'));
+        $this->assertFalse(MediaType::IMAGE->acceptsMimeType(null));
+    }
 
-        $audioMimes = MediaType::AUDIO->getSupportedMimeTypes();
-        $this->assertContains('audio/mpeg', $audioMimes);
-        $this->assertContains('audio/wav', $audioMimes);
+    /** @test */
+    public function other_type_does_not_check_mime_types_by_default(): void
+    {
+        $this->assertSame([], MediaType::OTHER->getSupportedMimeTypes());
+        $this->assertTrue(MediaType::OTHER->acceptsMimeType('application/octet-stream'));
+        $this->assertTrue(MediaType::OTHER->acceptsMimeType(null));
+    }
 
-        $documentMimes = MediaType::DOCUMENT->getSupportedMimeTypes();
-        $this->assertContains('application/pdf', $documentMimes);
-        $this->assertContains('application/msword', $documentMimes);
+    /** @test */
+    public function default_extension_lists_include_extended_formats(): void
+    {
+        $this->assertTrue(MediaType::IMAGE->supportsExtension('heic'));
+        $this->assertTrue(MediaType::IMAGE->supportsExtension('HEIC'));
+        $this->assertTrue(MediaType::VIDEO->supportsExtension('mkv'));
+        $this->assertTrue(MediaType::AUDIO->supportsExtension('m4a'));
+        $this->assertTrue(MediaType::DOCUMENT->supportsExtension('xlsx'));
+        $this->assertTrue(MediaType::DOCUMENT->supportsExtension('pptx'));
+        $this->assertTrue(MediaType::DOCUMENT->supportsExtension('odt'));
+        $this->assertTrue(MediaType::OTHER->supportsExtension('zip'));
+        $this->assertFalse(MediaType::OTHER->supportsExtension('exe'));
+    }
+
+    /** @test */
+    public function extensions_and_mime_types_are_configurable(): void
+    {
+        config(['media.types.other' => ['extensions' => ['gpx', 'FIT'], 'mime_types' => ['application/gpx+xml']]]);
+
+        $this->assertSame(['gpx', 'fit'], MediaType::OTHER->getSupportedExtensions());
+        $this->assertFalse(MediaType::OTHER->supportsExtension('zip'));
+        $this->assertTrue(MediaType::OTHER->acceptsMimeType('application/gpx+xml'));
+        $this->assertFalse(MediaType::OTHER->acceptsMimeType('application/zip'));
+    }
+
+    /** @test */
+    public function it_falls_back_to_defaults_when_types_are_not_configured(): void
+    {
+        config(['media.types' => null]);
+
+        $this->assertContains('jpg', MediaType::IMAGE->getSupportedExtensions());
+        $this->assertContains('zip', MediaType::OTHER->getSupportedExtensions());
+    }
+
+    /** @test */
+    public function it_detects_the_type_from_an_extension(): void
+    {
+        $this->assertSame(MediaType::IMAGE, MediaType::fromExtension('JPG'));
+        $this->assertSame(MediaType::VIDEO, MediaType::fromExtension('mkv'));
+        $this->assertSame(MediaType::DOCUMENT, MediaType::fromExtension('pptx'));
+        $this->assertSame(MediaType::OTHER, MediaType::fromExtension('zip'));
+        $this->assertNull(MediaType::fromExtension('exe'));
     }
 
     /** @test */

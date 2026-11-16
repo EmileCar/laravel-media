@@ -22,7 +22,11 @@ class CaroneMediaServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
-        $this->loadRoutesFrom(__DIR__ . '/routes.php');
+        // Private media setups disable all package routes and serve files
+        // from their own (authenticated) routes via Media::stream() etc.
+        if (config('media.routes.enabled', true)) {
+            $this->loadRoutesFrom(__DIR__ . '/routes.php');
+        }
 
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'media');
 

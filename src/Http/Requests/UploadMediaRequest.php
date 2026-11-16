@@ -3,6 +3,7 @@
 namespace Carone\Media\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Carone\Media\ValueObjects\MediaType;
 use Illuminate\Validation\Rule;
 
 class UploadMediaRequest extends FormRequest
@@ -15,7 +16,7 @@ class UploadMediaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => ['required', Rule::in(['image', 'video', 'audio', 'document'])],
+            'type' => ['required', Rule::in(array_map(fn ($type) => $type->value, MediaType::cases()))],
             'source' => ['required', Rule::in(['local', 'external'])],
             'file' => 'required_if:source,local|file',
             'url' => 'required_if:source,external|nullable|url|max:2048',

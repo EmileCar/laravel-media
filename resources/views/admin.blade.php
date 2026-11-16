@@ -591,6 +591,11 @@
             color: #44337a;
         }
 
+        .type-badge.other {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
         .file-size {
             color: #718096;
             font-size: 0.75rem;

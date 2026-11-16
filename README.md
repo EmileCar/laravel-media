@@ -155,14 +155,33 @@ return [
 
 ## Media Types
 
-The package supports four media types:
+The package supports five media types (default extensions):
 
-- **Image**: JPEG, PNG, GIF, WebP with automatic thumbnail generation
-- **Video**: MP4, AVI, MOV, WMV
-- **Audio**: MP3, WAV, OGG, AAC
-- **Document**: PDF, DOC, DOCX, TXT
+- **Image**: jpg, jpeg, png, gif, webp, heic, heif, avif, bmp, tif, tiff (thumbnails can be generated automatically)
+- **Video**: mp4, mov, avi, mkv, webm, m4v, 3gp
+- **Audio**: mp3, wav, m4a, aac, ogg, oga, flac, opus
+- **Document**: pdf, doc, docx, xls, xlsx, ppt, pptx, odt, ods, odp, rtf, txt, csv
+- **Other**: zip, 7z, rar, tar, gz, gpx, kml, kmz, json, xml, epub, eml, vcf, ics — files that are only stored and downloaded
 
-Each type can be individually enabled/disabled in the configuration.
+Each type can be individually enabled/disabled with `enabled_types`. The extensions and accepted
+MIME types per type are configurable in `types` (wildcards like `image/*` are allowed; an empty
+`mime_types` list disables the MIME check, which is the default for `other`):
+
+```php
+'types' => [
+    'other' => [
+        'extensions' => ['zip', 'gpx', 'fit'],
+        'mime_types' => [],
+    ],
+],
+```
+
+`banned_file_types` always applies. The extension list is also used to auto-detect the type of an
+uploaded file (`StoreMediaDataBuilder::fromFile()`). Images that the image driver cannot decode or
+re-encode (e.g. HEIC with GD, TIFF) are stored unprocessed.
+
+> Since 1.4 the `media_resources.type` column is a string (migration included), so new types need no schema change.
+> The default `validation` rules no longer contain `mimes:` rules; extensions are checked through `types`.
 
 ## Tags
 
@@ -407,6 +426,50 @@ The public search endpoints automatically generate these URLs:
     "thumbnail_url": "https://example.com/media/thumbnails/1"
 }
 ```
+
+### Private Media (own, authenticated routes)
+
+The routes above are public. For private media, disable all package routes, store files on a
+private disk and serve them from your own routes:
+
+```php
+// config/media.php (or .env)
+'disk' => 'local',                     // DEFAULT_MEDIA_STORAGE_DISK=local (not web-accessible)
+'routes' => ['enabled' => false],      // MEDIA_ROUTES_ENABLED=false: no API, file or admin routes
+```
+
+```php
+use Carone\Media\Facades\Media;
+
+Route::middleware('auth')->group(function () {
+    Route::get('/files/{id}', fn (int $id) => Media::stream($id));                  // inline
+    Route::get('/files/{id}/download', fn (int $id) => Media::download($id));       // attachment
+    Route::get('/files/{id}/thumbnail', fn (int $id) => Media::streamThumbnail($id));
+});
+```
+
+- Works with any filesystem disk. Local disks are served with a `BinaryFileResponse`; other disks are streamed in chunks.
+- **HTTP Range requests** are supported (`206 Partial Content`, `416` for unsatisfiable ranges), so browsers can seek in video and audio.
+- Responses carry `Cache-Control: private`, `X-Content-Type-Options: nosniff` and a `Content-Disposition` with the original upload name (`Media::download($id, 'other-name.pdf')` overrides it).
+- An unknown id throws `ModelNotFoundException`; external media or a missing file gives a 404.
+
+### Supplied Thumbnails (e.g. video poster frames)
+
+Only images get generated thumbnails. For other types (videos without ffmpeg, for example) supply
+a thumbnail image yourself, e.g. a poster frame drawn on a `<canvas>` in the browser:
+
+```php
+$data = StoreMediaDataBuilder::fromFile($video)
+    ->withName('Holiday')
+    ->withThumbnailFile($posterJpeg)
+    ->build();
+
+Media::store($data);
+```
+
+The thumbnail file must be an image. With `thumbnails.process_supplied = true`
+(`MEDIA_PROCESS_SUPPLIED_THUMBNAILS`) it is resized/converted with the `processing.thumbnail`
+settings; otherwise it is stored as-is. Deleting media also deletes its thumbnail file.
 
 ## Security
 
